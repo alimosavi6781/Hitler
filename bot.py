@@ -39,7 +39,7 @@ except ImportError:  # pragma: no cover - Python 3.9+ has zoneinfo
 
 
 APP_NAME = "هشداربان بازار"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1.0"
 USER_AGENT = f"PersianCryptoAlertBot/{APP_VERSION}"
 DEFAULT_SYMBOLS = ("BTCUSDT", "ETHUSDT")
 POPULAR_SYMBOLS = ("BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT")
@@ -88,6 +88,11 @@ def env_int(name: str, default: int, minimum: int, maximum: int) -> int:
     except ValueError:
         value = default
     return max(minimum, min(maximum, value))
+
+
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name, "true" if default else "false").strip().lower()
+    return value in {"1", "true", "yes", "on", "فعال", "بله"}
 
 
 def parse_id_set(value: str) -> frozenset[int]:
@@ -151,6 +156,20 @@ def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def parse_iso_datetime(value: str) -> datetime:
+    parsed = datetime.fromisoformat(value)
+    return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=timezone.utc)
+
+
+def iso_to_tehran(value: str) -> str:
+    return parse_iso_datetime(value).astimezone(TEHRAN_TZ).strftime("%Y/%m/%d - %H:%M").translate(FA_DIGITS)
+
+
+def remaining_days(value: str) -> int:
+    seconds = (parse_iso_datetime(value) - datetime.now(timezone.utc)).total_seconds()
+    return max(0, math.ceil(seconds / 86_400))
+
+
 def symbol_label(symbol: str) -> str:
     base = symbol[:-4] if symbol.endswith("USDT") else symbol
     labels = {"BTC": "بیت‌کوین", "ETH": "اتریوم", "SOL": "سولانا", "BNB": "بایننس‌کوین"}
@@ -176,6 +195,9 @@ class Config:
     poll_timeout: int
     http_timeout: int
     allowed_chat_ids: frozenset[int]
+    subscription_mode: bool
+    admin_user_ids: frozenset[int]
+    support_username: str
     default_symbols: tuple[str, ...]
     port: int
 
@@ -198,13 +220,30 @@ class Config:
         if not configured_symbols:
             configured_symbols = list(DEFAULT_SYMBOLS)
 
+        allowed_chat_ids = parse_id_set(os.getenv("ALLOWED_CHAT_IDS", ""))
+        subscription_mode = env_bool("SUBSCRIPTION_MODE", False)
+        admin_user_ids = parse_id_set(os.getenv("ADMIN_USER_IDS", ""))
+        # برای مهاجرت ساده از نسخه شخصی، شناسه‌های allowlist را مدیر در نظر می‌گیریم.
+        if subscription_mode and not admin_user_ids:
+            admin_user_ids = allowed_chat_ids
+        if subscription_mode and not admin_user_ids:
+            raise RuntimeError(
+                "برای حالت اشتراکی باید ADMIN_USER_IDS (یا ALLOWED_CHAT_IDS قدیمی) را با شناسه مدیر تنظیم کنی."
+            )
+        support_username = os.getenv("SUPPORT_USERNAME", "").strip().lstrip("@")
+        if support_username and not re.fullmatch(r"[A-Za-z0-9_]{5,32}", support_username):
+            raise RuntimeError("فرمت SUPPORT_USERNAME درست نیست؛ فقط نام کاربری بدون @ را وارد کن.")
+
         return cls(
             token=token,
             database_path=os.getenv("DATABASE_PATH", "data/bot.db"),
             check_interval=env_int("CHECK_INTERVAL", 60, 30, 900),
             poll_timeout=env_int("POLL_TIMEOUT", 50, 5, 55),
             http_timeout=env_int("HTTP_TIMEOUT", 15, 5, 60),
-            allowed_chat_ids=parse_id_set(os.getenv("ALLOWED_CHAT_IDS", "")),
+            allowed_chat_ids=allowed_chat_ids,
+            subscription_mode=subscription_mode,
+            admin_user_ids=admin_user_ids,
+            support_username=support_username,
             default_symbols=tuple(configured_symbols[:8]),
             port=env_int("PORT", 0, 0, 65535),
         )
@@ -289,6 +328,18 @@ class Database:
                     PRIMARY KEY (chat_id, symbol, signal_type, candle_time)
                 );
 
+                CREATE TABLE IF NOT EXISTS subscriptions (
+                    user_id INTEGER PRIMARY KEY,
+                    expires_at TEXT NOT NULL,
+                    active INTEGER NOT NULL DEFAULT 1,
+                    granted_by INTEGER NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_subscriptions_active_expiry
+                    ON subscriptions(active, expires_at);
+
                 CREATE TABLE IF NOT EXISTS meta (
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL
@@ -336,6 +387,98 @@ class Database:
         try:
             row = conn.execute("SELECT active FROM chats WHERE chat_id=?", (chat_id,)).fetchone()
             return bool(row and row[0])
+        finally:
+            self._close(conn)
+
+    def user_for_chat(self, chat_id: int) -> Optional[int]:
+        conn = self.connection()
+        try:
+            row = conn.execute("SELECT user_id FROM chats WHERE chat_id=?", (chat_id,)).fetchone()
+            return int(row[0]) if row and row[0] is not None else None
+        finally:
+            self._close(conn)
+
+    def subscription_status(self, user_id: int) -> Optional[sqlite3.Row]:
+        conn = self.connection()
+        try:
+            return conn.execute(
+                "SELECT user_id, expires_at, active, granted_by, created_at, updated_at FROM subscriptions WHERE user_id=?",
+                (user_id,),
+            ).fetchone()
+        finally:
+            self._close(conn)
+
+    def has_active_subscription(self, user_id: int) -> bool:
+        conn = self.connection()
+        try:
+            row = conn.execute(
+                """SELECT 1 FROM subscriptions
+                   WHERE user_id=? AND active=1 AND expires_at>?""",
+                (user_id, utc_now_iso()),
+            ).fetchone()
+            return row is not None
+        finally:
+            self._close(conn)
+
+    def grant_subscription(self, user_id: int, days: int, granted_by: int) -> str:
+        if user_id <= 0:
+            raise ValueError("شناسه کاربر باید یک عدد مثبت باشد.")
+        if not 1 <= days <= 3650:
+            raise ValueError("مدت اشتراک باید بین ۱ تا ۳۶۵۰ روز باشد.")
+        now = datetime.now(timezone.utc)
+        now_iso = now.isoformat(timespec="seconds")
+        conn = self.connection()
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute(
+                "SELECT expires_at, active FROM subscriptions WHERE user_id=?", (user_id,)
+            ).fetchone()
+            start = now
+            if row and bool(row["active"]):
+                current_expiry = parse_iso_datetime(str(row["expires_at"]))
+                if current_expiry > now:
+                    start = current_expiry
+            expires_at = (start + timedelta(days=days)).isoformat(timespec="seconds")
+            conn.execute(
+                """INSERT INTO subscriptions(user_id, expires_at, active, granted_by, created_at, updated_at)
+                   VALUES (?, ?, 1, ?, ?, ?)
+                   ON CONFLICT(user_id) DO UPDATE SET
+                     expires_at=excluded.expires_at, active=1,
+                     granted_by=excluded.granted_by, updated_at=excluded.updated_at""",
+                (user_id, expires_at, granted_by, now_iso, now_iso),
+            )
+            conn.execute("COMMIT")
+            return expires_at
+        except Exception:
+            conn.execute("ROLLBACK")
+            raise
+        finally:
+            self._close(conn)
+
+    def revoke_subscription(self, user_id: int) -> bool:
+        conn = self.connection()
+        try:
+            cursor = conn.execute(
+                "UPDATE subscriptions SET active=0, updated_at=? WHERE user_id=? AND active=1",
+                (utc_now_iso(), user_id),
+            )
+            return cursor.rowcount > 0
+        finally:
+            self._close(conn)
+
+    def active_subscriptions(self, limit: int = 100) -> list[sqlite3.Row]:
+        conn = self.connection()
+        try:
+            return list(
+                conn.execute(
+                    """SELECT s.user_id, s.expires_at, c.display_name
+                       FROM subscriptions s
+                       LEFT JOIN chats c ON c.user_id=s.user_id AND c.chat_id=s.user_id
+                       WHERE s.active=1 AND s.expires_at>?
+                       ORDER BY s.expires_at ASC LIMIT ?""",
+                    (utc_now_iso(), limit),
+                ).fetchall()
+            )
         finally:
             self._close(conn)
 
@@ -1111,7 +1254,7 @@ def main_menu(enabled: bool = True) -> dict[str, Any]:
             [("💵 قیمت‌ها", "menu:prices"), ("📊 تحلیل الان", "menu:analysis")],
             [("⏰ هشدار قیمت جدید", "menu:new_alert"), ("📋 هشدارهای من", "menu:alerts")],
             [("🪙 نمادهای من", "menu:symbols"), (toggle_text, "menu:toggle")],
-            [("❓ راهنما", "menu:help")],
+            [("👤 اشتراک من", "menu:subscription"), ("❓ راهنما", "menu:help")],
         ]
     )
 
@@ -1150,7 +1293,8 @@ HELP_TEXT = """<b>راهنمای ربات</b>
 /delsymbol SOLUSDT — حذف نماد
 /symbols — فهرست نمادها
 /risk — محاسبه اندازه معامله
-/id — نمایش شناسه چت
+/subscription — وضعیت اشتراک من
+/id — نمایش شناسه تلگرام
 /cancel — لغو عملیات جاری
 /help — همین راهنما
 
@@ -1168,6 +1312,23 @@ EMA 9/21/50، RSI 14، MACD، ATR، حجم و شکست سقف ۲۰ کندل در
 
 ⚠️ برای فیوچرز و اهرم طراحی نشده و توصیه قطعی خرید/فروش نیست."""
 
+ADMIN_HELP_TEXT = """<b>مدیریت اشتراک‌ها</b>
+
+<code>/grant USER_ID DAYS</code>
+فعال‌سازی یا تمدید اشتراک؛ مثال:
+<code>/grant 123456789 30</code>
+
+<code>/revokeuser USER_ID</code>
+قطع فوری اشتراک کاربر
+
+<code>/users</code>
+فهرست اشتراک‌های فعال
+
+<code>/userinfo USER_ID</code>
+مشاهده وضعیت یک کاربر
+
+نکته: مشتری باید ابتدا /start را بزند و شناسه نمایش‌داده‌شده را برای تو بفرستد. دستور /grant اگر اشتراک هنوز باقی مانده باشد، روزهای جدید را به تاریخ پایان فعلی اضافه می‌کند."""
+
 
 class BotApplication:
     def __init__(self, config: Config, database: Database, telegram: TelegramClient, market: MarketClient) -> None:
@@ -1179,8 +1340,46 @@ class BotApplication:
         self.states_lock = threading.Lock()
         self.bot_username = ""
 
-    def allowed(self, chat_id: int) -> bool:
+    def is_admin(self, user_id: int) -> bool:
+        return user_id in self.config.admin_user_ids
+
+    def allowed(self, chat_id: int, user_id: Optional[int] = None) -> bool:
+        """دسترسی به امکانات پولی؛ برای پایش پس‌زمینه نیز همین تابع استفاده می‌شود."""
+        if self.config.subscription_mode:
+            # ربات اشتراکی فقط در گفت‌وگوی خصوصی کار می‌کند؛ گروه‌ها chat_id منفی دارند.
+            if chat_id <= 0:
+                return False
+            resolved_user_id = user_id or self.db.user_for_chat(chat_id) or chat_id
+            return self.is_admin(resolved_user_id) or self.db.has_active_subscription(resolved_user_id)
         return not self.config.allowed_chat_ids or chat_id in self.config.allowed_chat_ids
+
+    def subscription_locked_text(self, user_id: int) -> str:
+        status = self.db.subscription_status(user_id)
+        if status and bool(status["active"]) and parse_iso_datetime(str(status["expires_at"])) <= datetime.now(timezone.utc):
+            headline = "⌛️ <b>اشتراک تو تمام شده است.</b>"
+            detail = f"پایان اشتراک قبلی: {iso_to_tehran(str(status['expires_at']))}"
+        elif status and not bool(status["active"]):
+            headline = "⛔️ <b>اشتراک تو غیرفعال است.</b>"
+            detail = "برای فعال‌سازی مجدد با مدیر تماس بگیر."
+        else:
+            headline = "🔒 <b>اشتراک فعالی برای این حساب وجود ندارد.</b>"
+            detail = "بعد از پرداخت، مدیر اشتراک را برای همین حساب فعال می‌کند."
+        contact = (
+            f"\n💬 ارتباط با مدیر: @{html.escape(self.config.support_username)}"
+            if self.config.support_username
+            else "\nاین شناسه را برای مدیر ربات بفرست."
+        )
+        return "\n".join(
+            [
+                headline,
+                detail,
+                "",
+                f"شناسه تلگرام تو: <code>{user_id}</code>",
+                contact,
+                "",
+                "فرستادن لینک ربات به دیگران دسترسی ایجاد نمی‌کند؛ اشتراک به شناسه تلگرام متصل است.",
+            ]
+        )
 
     def safe_send(self, chat_id: int, text: str, reply_markup: Optional[dict[str, Any]] = None) -> bool:
         try:
@@ -1219,19 +1418,43 @@ class BotApplication:
         if not text:
             return
 
-        if not self.allowed(chat_id):
-            self.safe_send(chat_id, "⛔️ این ربات خصوصی است و شناسه این چت اجازه دسترسی ندارد.\nشناسه چت: <code>%s</code>" % chat_id)
+        if self.config.subscription_mode and chat.get("type") != "private":
+            self.safe_send(chat_id, "⛔️ نسخه اشتراکی فقط در گفت‌وگوی خصوصی با ربات قابل استفاده است.")
             return
 
         if text.startswith("/"):
             self.subscribe_from_message(message)
             command, _, arguments = text.partition(" ")
             command = command.split("@", 1)[0].lower()
+            public_commands = {"/start", "/id", "/subscription", "/help"}
+            admin_commands = {"/admin", "/grant", "/revokeuser", "/users", "/userinfo"}
+
+            if command in admin_commands and not self.is_admin(user_id):
+                self.safe_send(chat_id, "⛔️ این دستور فقط برای مدیر ربات است.")
+                return
+            if not self.allowed(chat_id, user_id):
+                if self.config.subscription_mode and command in public_commands:
+                    self.handle_command(chat_id, user_id, command, arguments.strip())
+                elif self.config.subscription_mode:
+                    self.safe_send(chat_id, self.subscription_locked_text(user_id))
+                else:
+                    self.safe_send(
+                        chat_id,
+                        "⛔️ این ربات خصوصی است و شناسه این چت اجازه دسترسی ندارد.\n"
+                        f"شناسه چت: <code>{chat_id}</code>",
+                    )
+                return
             self.handle_command(chat_id, user_id, command, arguments.strip())
             return
 
         if not self.db.is_subscribed(chat_id):
             self.subscribe_from_message(message)
+        if not self.allowed(chat_id, user_id):
+            if self.config.subscription_mode:
+                self.safe_send(chat_id, self.subscription_locked_text(user_id))
+            else:
+                self.safe_send(chat_id, "⛔️ این ربات خصوصی است و اجازه دسترسی نداری.")
+            return
         if self.handle_state(chat_id, user_id, text):
             return
         self.safe_send(chat_id, "دستور را متوجه نشدم؛ از دکمه‌های منو استفاده کن 👇", main_menu(self.db.signals_enabled(chat_id)))
@@ -1239,9 +1462,15 @@ class BotApplication:
     def handle_command(self, chat_id: int, user_id: int, command: str, arguments: str) -> None:
         if command == "/start":
             self.clear_state(chat_id, user_id)
-            self.safe_send(chat_id, WELCOME_TEXT, main_menu(self.db.signals_enabled(chat_id)))
+            if self.config.subscription_mode and not self.allowed(chat_id, user_id):
+                self.safe_send(chat_id, self.subscription_locked_text(user_id))
+            else:
+                self.safe_send(chat_id, WELCOME_TEXT, main_menu(self.db.signals_enabled(chat_id)))
         elif command in {"/help", "/menu"}:
-            self.safe_send(chat_id, HELP_TEXT, main_menu(self.db.signals_enabled(chat_id)))
+            if self.config.subscription_mode and not self.allowed(chat_id, user_id):
+                self.safe_send(chat_id, self.subscription_locked_text(user_id))
+            else:
+                self.safe_send(chat_id, HELP_TEXT, main_menu(self.db.signals_enabled(chat_id)))
         elif command in {"/prices", "/price"}:
             self.send_prices(chat_id)
         elif command in {"/analysis", "/signal", "/signals"}:
@@ -1263,8 +1492,20 @@ class BotApplication:
             self.send_symbols(chat_id)
         elif command == "/risk":
             self.risk_command(chat_id, arguments)
+        elif command == "/subscription":
+            self.send_subscription_status(chat_id, user_id)
         elif command == "/id":
-            self.safe_send(chat_id, f"شناسه این چت: <code>{chat_id}</code>")
+            self.safe_send(chat_id, f"شناسه تلگرام تو: <code>{user_id}</code>")
+        elif command == "/admin":
+            self.safe_send(chat_id, ADMIN_HELP_TEXT)
+        elif command == "/grant":
+            self.grant_command(chat_id, user_id, arguments)
+        elif command == "/revokeuser":
+            self.revoke_user_command(chat_id, arguments)
+        elif command == "/users":
+            self.send_active_users(chat_id)
+        elif command == "/userinfo":
+            self.user_info_command(chat_id, arguments)
         elif command == "/cancel":
             self.clear_state(chat_id, user_id)
             self.safe_send(chat_id, "عملیات لغو شد ✅", main_menu(self.db.signals_enabled(chat_id)))
@@ -1285,9 +1526,13 @@ class BotApplication:
             self.telegram.answer_callback(callback_id)
         except TelegramError:
             pass
-        if not self.allowed(chat_id):
+        if self.config.subscription_mode and chat.get("type") != "private":
             return
         self.db.subscribe(chat_id, user_id, str(sender.get("first_name", "")))
+        if not self.allowed(chat_id, user_id):
+            if self.config.subscription_mode:
+                self.safe_send(chat_id, self.subscription_locked_text(user_id))
+            return
 
         if data == "menu:prices":
             self.send_prices(chat_id)
@@ -1303,6 +1548,8 @@ class BotApplication:
             enabled = self.db.toggle_signals(chat_id)
             status = "روشن شد 🔔" if enabled else "خاموش شد 🔕"
             self.safe_send(chat_id, f"هشدار تحلیلی خودکار {status}\nهشدارهای قیمت دلخواه همچنان فعال می‌مانند.", main_menu(enabled))
+        elif data == "menu:subscription":
+            self.send_subscription_status(chat_id, user_id)
         elif data == "menu:help":
             self.safe_send(chat_id, HELP_TEXT, main_menu(self.db.signals_enabled(chat_id)))
         elif data == "menu:cancel":
@@ -1540,6 +1787,113 @@ class BotApplication:
             ),
         )
 
+    def send_subscription_status(self, chat_id: int, user_id: int) -> None:
+        if not self.config.subscription_mode:
+            self.safe_send(chat_id, "سیستم اشتراک در نسخه فعلی غیرفعال است.")
+            return
+        if self.is_admin(user_id):
+            self.safe_send(chat_id, "👑 حساب تو <b>مدیر</b> است و محدودیت زمانی ندارد.\n/admin — دستورات مدیریت")
+            return
+        status = self.db.subscription_status(user_id)
+        if status and self.db.has_active_subscription(user_id):
+            expires_at = str(status["expires_at"])
+            self.safe_send(
+                chat_id,
+                "\n".join(
+                    [
+                        "✅ <b>اشتراک تو فعال است.</b>",
+                        f"پایان اشتراک: <b>{iso_to_tehran(expires_at)}</b> (تهران)",
+                        f"زمان باقی‌مانده: حدود <b>{fa_int(remaining_days(expires_at))} روز</b>",
+                        f"شناسه تلگرام: <code>{user_id}</code>",
+                    ]
+                ),
+            )
+        else:
+            self.safe_send(chat_id, self.subscription_locked_text(user_id))
+
+    def grant_command(self, chat_id: int, admin_user_id: int, arguments: str) -> None:
+        parts = arguments.split()
+        if len(parts) != 2:
+            self.safe_send(chat_id, "فرمت درست:\n<code>/grant شناسه_کاربر تعداد_روز</code>\nمثال: <code>/grant 123456789 30</code>")
+            return
+        try:
+            customer_id = int(parts[0].translate(EN_DIGITS))
+            days = int(parts[1].translate(EN_DIGITS))
+            expires_at = self.db.grant_subscription(customer_id, days, admin_user_id)
+        except ValueError as exc:
+            self.safe_send(chat_id, f"❌ {html.escape(str(exc))}")
+            return
+        notification = "\n".join(
+            [
+                "✅ <b>اشتراک تو فعال شد.</b>",
+                f"مدت افزوده‌شده: {fa_int(days)} روز",
+                f"پایان اشتراک: <b>{iso_to_tehran(expires_at)}</b> (تهران)",
+                "حالا /start را بزن و از امکانات ربات استفاده کن.",
+            ]
+        )
+        delivered = self.safe_send(customer_id, notification)
+        delivery_note = "پیام فعال‌سازی هم ارسال شد." if delivered else "پیام ارسال نشد؛ مشتری باید ابتدا /start را بزند."
+        self.safe_send(
+            chat_id,
+            f"✅ اشتراک <code>{customer_id}</code> تا <b>{iso_to_tehran(expires_at)}</b> فعال شد.\n{delivery_note}",
+        )
+
+    def revoke_user_command(self, chat_id: int, arguments: str) -> None:
+        try:
+            customer_id = int(arguments.strip().translate(EN_DIGITS))
+            if customer_id <= 0:
+                raise ValueError
+        except ValueError:
+            self.safe_send(chat_id, "فرمت درست: <code>/revokeuser 123456789</code>")
+            return
+        revoked = self.db.revoke_subscription(customer_id)
+        if not revoked:
+            self.safe_send(chat_id, "اشتراک فعال این کاربر پیدا نشد.")
+            return
+        self.safe_send(chat_id, f"اشتراک <code>{customer_id}</code> قطع شد ✅")
+        self.safe_send(customer_id, "⛔️ اشتراک تو توسط مدیر غیرفعال شد. برای پیگیری با مدیر تماس بگیر.")
+
+    def send_active_users(self, chat_id: int) -> None:
+        rows = self.db.active_subscriptions()
+        if not rows:
+            self.safe_send(chat_id, "هیچ اشتراک فعالی وجود ندارد.")
+            return
+        lines = [f"<b>کاربران فعال ({fa_int(len(rows))}):</b>", ""]
+        for row in rows:
+            name = html.escape(str(row["display_name"] or "بدون نام"))
+            expires_at = str(row["expires_at"])
+            lines.append(
+                f"• <code>{row['user_id']}</code> — {name}\n"
+                f"  تا {iso_to_tehran(expires_at)} | {fa_int(remaining_days(expires_at))} روز"
+            )
+        self.safe_send(chat_id, "\n".join(lines))
+
+    def user_info_command(self, chat_id: int, arguments: str) -> None:
+        try:
+            customer_id = int(arguments.strip().translate(EN_DIGITS))
+            if customer_id <= 0:
+                raise ValueError
+        except ValueError:
+            self.safe_send(chat_id, "فرمت درست: <code>/userinfo 123456789</code>")
+            return
+        status = self.db.subscription_status(customer_id)
+        if not status:
+            self.safe_send(chat_id, f"برای <code>{customer_id}</code> هیچ سابقه اشتراکی وجود ندارد.")
+            return
+        expires_at = str(status["expires_at"])
+        active = self.db.has_active_subscription(customer_id)
+        self.safe_send(
+            chat_id,
+            "\n".join(
+                [
+                    f"شناسه: <code>{customer_id}</code>",
+                    f"وضعیت: {'✅ فعال' if active else '⛔️ غیرفعال/تمام‌شده'}",
+                    f"تاریخ پایان: {iso_to_tehran(expires_at)}",
+                    f"روز باقی‌مانده: {fa_int(remaining_days(expires_at))}",
+                ]
+            ),
+        )
+
 
 # ---------------------------------------------------------------------------
 # پایش پس‌زمینه و سرویس سلامت
@@ -1672,6 +2026,7 @@ def configure_bot_commands(telegram: TelegramClient) -> None:
         {"command": "alerts", "description": "هشدارهای قیمت فعال"},
         {"command": "symbols", "description": "مدیریت نمادها"},
         {"command": "risk", "description": "محاسبه اندازه معامله"},
+        {"command": "subscription", "description": "وضعیت اشتراک من"},
         {"command": "help", "description": "راهنما"},
         {"command": "cancel", "description": "لغو عملیات"},
     ]

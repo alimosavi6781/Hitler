@@ -12,7 +12,9 @@ from bot import (
     Candle,
     CandleResult,
     CoinbaseProvider,
+    Config,
     Database,
+    BotApplication,
     OKXProvider,
     PriceMonitor,
     analyze_market,
@@ -161,6 +163,40 @@ class DatabaseTests(unittest.TestCase):
         )
         self.db.release_signal(1234, "BTCUSDT", "buy", 123_456)
         self.assertTrue(self.db.claim_signal(1234, "BTCUSDT", "buy", 123_456))
+
+    def test_monthly_subscription_grant_extend_and_revoke(self):
+        first_expiry = self.db.grant_subscription(5678, 30, granted_by=1234)
+        self.assertTrue(self.db.has_active_subscription(5678))
+        second_expiry = self.db.grant_subscription(5678, 10, granted_by=1234)
+        first = time.mktime(time.strptime(first_expiry[:19], "%Y-%m-%dT%H:%M:%S"))
+        second = time.mktime(time.strptime(second_expiry[:19], "%Y-%m-%dT%H:%M:%S"))
+        self.assertAlmostEqual(second - first, 10 * 86_400, delta=2)
+        self.assertEqual(len(self.db.active_subscriptions()), 1)
+        self.assertTrue(self.db.revoke_subscription(5678))
+        self.assertFalse(self.db.has_active_subscription(5678))
+        self.assertFalse(self.db.revoke_subscription(5678))
+
+    def test_subscription_access_is_bound_to_user_and_private_chat(self):
+        config = Config(
+            token="123456:abcdefghijklmnopqrstuvwxyz_123456",
+            database_path=self.path,
+            check_interval=60,
+            poll_timeout=50,
+            http_timeout=15,
+            allowed_chat_ids=frozenset(),
+            subscription_mode=True,
+            admin_user_ids=frozenset({1234}),
+            support_username="seller_test",
+            default_symbols=("BTCUSDT", "ETHUSDT"),
+            port=0,
+        )
+        app = BotApplication(config, self.db, object(), object())
+        self.assertTrue(app.allowed(1234, 1234))  # مدیر
+        self.assertFalse(app.allowed(5678, 5678))
+        self.db.grant_subscription(5678, 30, granted_by=1234)
+        self.assertTrue(app.allowed(5678, 5678))
+        self.assertFalse(app.allowed(-100123, 5678))  # گروه حتی برای مشترک مجاز نیست
+        self.assertFalse(app.allowed(9999, 9999))  # فرستادن لینک دسترسی ایجاد نمی‌کند
 
     def test_price_alert_is_sent_once(self):
         alert_id = self.db.create_alert(1234, "BTCUSDT", "above", 70_000)
