@@ -1,0 +1,21 @@
+# اسرار و تنظیمات شخصی
+.env
+*.env.local
+
+# دیتابیس و داده اجرایی
+/data/
+*.db
+*.db-shm
+*.db-wal
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ابزارها و سیستم‌عامل
+.pytest_cache/
+.coverage
+.DS_Store
+*.log
