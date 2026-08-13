@@ -1578,7 +1578,11 @@ class PriceMonitor(threading.Thread):
                 log.error("قیمت %s دریافت نشد: %s", symbol, exc)
                 continue
             self.check_price_alerts(symbol, current_price)
-            recipients = self.app.db.signal_recipients(symbol)
+            recipients = [
+                chat_id
+                for chat_id in self.app.db.signal_recipients(symbol)
+                if self.app.allowed(chat_id)
+            ]
             if not recipients:
                 continue
             try:
@@ -1606,6 +1610,10 @@ class PriceMonitor(threading.Thread):
 
     def check_price_alerts(self, symbol: str, current_price: float) -> None:
         for row in self.app.db.active_alerts_for_symbol(symbol):
+            chat_id = int(row["chat_id"])
+            # محدودیت ALLOWED_CHAT_IDS هم برای پیام ورودی و هم اعلان خودکار اعمال می‌شود.
+            if not self.app.allowed(chat_id):
+                continue
             reached = current_price >= row["target"] if row["direction"] == "above" else current_price <= row["target"]
             if not reached or not self.app.db.trigger_alert(int(row["id"])):
                 continue
@@ -1621,7 +1629,7 @@ class PriceMonitor(threading.Thread):
                     "این هشدار به‌تنهایی سیگنال ورود نیست؛ قبل از معامله تحلیل و حد ضرر را بررسی کن.",
                 ]
             )
-            if not self.app.safe_send(int(row["chat_id"]), message, main_menu(True)):
+            if not self.app.safe_send(chat_id, message, main_menu(True)):
                 self.app.db.reactivate_alert(int(row["id"]))
 
 

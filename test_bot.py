@@ -170,6 +170,9 @@ class DatabaseTests(unittest.TestCase):
                 self.db = database
                 self.sent = []
 
+            def allowed(self, chat_id):
+                return True
+
             def safe_send(self, chat_id, text, reply_markup=None):
                 self.sent.append((chat_id, text, reply_markup))
                 return True
