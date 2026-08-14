@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اینستامنیجر — پنل مدیریت اینستاگرام</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- سایدبار -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-badge">📸</div>
+      <div>
+        <div class="logo-title">اینستامـنیجر</div>
+        <div class="logo-sub">مدیریت هوشمند پیج</div>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-item active" data-view="dashboard"><span>🏠</span> داشبورد</button>
+      <button class="nav-item" data-view="create-post"><span>🖼️</span> ساخت پست</button>
+      <button class="nav-item" data-view="create-story"><span>📱</span> ساخت استوری</button>
+      <button class="nav-item" data-view="calendar"><span>🗓️</span> تقویم انتشار</button>
+      <button class="nav-item" data-view="analytics"><span>📊</span> آنالیز پیج</button>
+      <button class="nav-item" data-view="growth"><span>🚀</span> رشد پیج</button>
+      <button class="nav-item" data-view="products"><span>🛍️</span> محصولات</button>
+      <button class="nav-item" data-view="settings"><span>⚙️</span> تنظیمات</button>
+    </nav>
+    <div class="sidebar-footer" id="api-badge">🔌 وضعیت اتصال: ...</div>
+  </aside>
+
+  <!-- محتوا -->
+  <main class="main">
+    <!-- داشبورد -->
+    <section id="view-dashboard" class="view active">
+      <h1>داشبورد</h1>
+      <div class="cards" id="dash-cards"></div>
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head"><h2>⏳ در صف انتشار</h2><button class="btn ghost" onclick="go('calendar')">همه</button></div>
+          <div id="dash-upcoming"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>🕓 فعالیت‌های اخیر</h2></div>
+          <div id="dash-activity"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ساخت پست -->
+    <section id="view-create-post" class="view">
+      <h1>ساخت پست جدید</h1>
+      <div class="two-col">
+        <div class="panel">
+          <div class="form-grid">
+            <label>محصول (اختیاری)
+              <select id="post-product"></select>
+            </label>
+            <label>قالب
+              <select id="post-template">
+                <option value="intro">معرفی محصول</option>
+                <option value="offer">پیشنهاد ویژه / تخفیف</option>
+                <option value="question">سوال تعاملی</option>
+              </select>
+            </label>
+            <label>عنوان پست
+              <input id="post-title" placeholder="مثلاً: شمع دست‌ساز معطر">
+            </label>
+            <label>توضیح کوتاه (روی تصویر)
+              <input id="post-text" placeholder="متن کوتاهی که روی تصویر می‌آید">
+            </label>
+            <label>قیمت (تومان)
+              <input id="post-price" placeholder="185000">
+            </label>
+            <label>قیمت قبلی برای تخفیف (اختیاری)
+              <input id="post-oldprice" placeholder="235000">
+            </label>
+          </div>
+          <label>کپشن</label>
+          <textarea id="post-caption" rows="6" placeholder="کپشن خودت را بنویس یا از پیشنهاد هوشمند استفاده کن"></textarea>
+          <div class="btn-row">
+            <button class="btn" onclick="ideasForPost()">✨ پیشنهاد کپشن هوشمند</button>
+          </div>
+          <label>هشتگ‌ها</label>
+          <input id="post-hashtags" placeholder="#فروشگاه_آنلاین #خرید_اینترنتی ...">
+          <label>زمان انتشار (خالی = پیش‌نویس)</label>
+          <input type="datetime-local" id="post-schedule">
+          <div class="btn-row">
+            <button class="btn primary" onclick="generatePost()">🎨 ساخت تصویر و پست</button>
+          </div>
+        </div>
+        <div class="panel center" id="post-preview">
+          <div class="preview-empty">پیش‌نمایش پست اینجا نمایش داده می‌شود</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ساخت استوری -->
+    <section id="view-create-story" class="view">
+      <h1>ساخت استوری جدید</h1>
+      <div class="two-col">
+        <div class="panel">
+          <div class="form-grid">
+            <label>محصول (اختیاری)
+              <select id="story-product"></select>
+            </label>
+            <label>قالب
+              <select id="story-template">
+                <option value="product">محصول</option>
+                <option value="tip">نکته روز</option>
+                <option value="quote">جمله انگیزشی</option>
+                <option value="question">سوال از مخاطب</option>
+              </select>
+            </label>
+            <label>عنوان
+              <input id="story-title" placeholder="مثلاً: شمع دست‌ساز معطر">
+            </label>
+            <label>متن اصلی
+              <input id="story-extra" placeholder="برای قالب نکته/جمله/سوال این متن نمایش داده می‌شود">
+            </label>
+            <label>قیمت (تومان)
+              <input id="story-price" placeholder="185000">
+            </label>
+          </div>
+          <label>کپشن (برای پست شدن استوری در صورت نیاز)</label>
+          <textarea id="story-caption" rows="4"></textarea>
+          <label>زمان انتشار (خالی = پیش‌نویس)</label>
+          <input type="datetime-local" id="story-schedule">
+          <div class="btn-row">
+            <button class="btn primary" onclick="generateStory()">🎨 ساخت تصویر و استوری</button>
+          </div>
+        </div>
+        <div class="panel center" id="story-preview">
+          <div class="preview-empty">پیش‌نمایش استوری اینجا نمایش داده می‌شود</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- تقویم انتشار -->
+    <section id="view-calendar" class="view">
+      <h1>تقویم انتشار</h1>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>پست‌ها و استوری‌ها</h2>
+          <div class="btn-row">
+            <button class="btn ghost" onclick="calendarFilter('')">همه</button>
+            <button class="btn ghost" onclick="calendarFilter('scheduled,ai_draft,ready')">در انتظار</button>
+            <button class="btn ghost" onclick="calendarFilter('published')">منتشر شده</button>
+          </div>
+        </div>
+        <div id="calendar-list"></div>
+      </div>
+    </section>
+
+    <!-- آنالیز -->
+    <section id="view-analytics" class="view">
+      <h1>آنالیز پیج</h1>
+      <div class="cards" id="analytics-cards"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>📈 روند فالوورها</h2>
+          <div class="btn-row">
+            <button class="btn ghost" id="btn-fetch-insights" onclick="fetchInsights()">🔄 دریافت از اینستاگرام</button>
+            <button class="btn ghost" onclick="openManualMetric()">✍️ ثبت دستی آمار</button>
+            <button class="btn ghost danger" onclick="resetAnalytics()">🗑️ پاک کردن داده‌ها</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><svg id="chart-followers" width="100%" height="300"></svg></div>
+        <div class="hint" id="analytics-hint"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>📉 دسترسی (ریچ)</h2></div>
+        <div class="chart-wrap"><svg id="chart-reach" width="100%" height="240"></svg></div>
+      </div>
+    </section>
+
+    <!-- رشد پیج -->
+    <section id="view-growth" class="view">
+      <h1>رشد و تقویت پیج</h1>
+      <div class="panel">
+        <div class="panel-head"><h2>💡 پیشنهادهای هوشمند</h2><button class="btn ghost" onclick="loadRecommendations()">🔄 به‌روزرسانی</button></div>
+        <div id="recommendations"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>✅ چک‌لیست رشد</h2></div>
+        <div id="task-list"></div>
+        <div class="btn-row add-task-row">
+          <input id="new-task" placeholder="تسک جدید رشد پیج...">
+          <button class="btn" onclick="addTask()">افزودن</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>📄 گزارش هفتگی</h2><button class="btn" onclick="loadReport()">تولید گزارش</button></div>
+        <pre id="report-text" class="report"></pre>
+      </div>
+    </section>
+
+    <!-- محصولات -->
+    <section id="view-products" class="view">
+      <h1>محصولات فروشگاه</h1>
+      <div class="panel">
+        <div class="panel-head"><h2>افزودن / ویرایش محصول</h2></div>
+        <div class="form-grid">
+          <label>نام محصول <input id="prod-name" placeholder="شمع دست‌ساز معطر"></label>
+          <label>قیمت (تومان) <input id="prod-price" placeholder="185000"></label>
+          <label>توضیح کوتاه <input id="prod-desc" placeholder="توضیحی که در کپشن و روی تصویر می‌آید"></label>
+          <label>آیکون (برای تصویر بدون عکس) <input id="prod-emoji" value="🛍️"></label>
+          <label>عکس محصول
+            <input type="file" id="prod-file" accept="image/*">
+            <span class="hint" id="prod-file-hint"></span>
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="saveProduct()">💾 ذخیره محصول</button>
+          <button class="btn ghost" onclick="clearProductForm()">پاک کردن فرم</button>
+        </div>
+        <input type="hidden" id="prod-id">
+      </div>
+      <div class="products-grid" id="products-grid"></div>
+    </section>
+
+    <!-- تنظیمات -->
+    <section id="view-settings" class="view">
+      <h1>تنظیمات</h1>
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head"><h2>🏪 اطلاعات فروشگاه</h2></div>
+          <div class="form-grid">
+            <label>نام فروشگاه <input id="set-name"></label>
+            <label>آیدی اینستاگرام (بدون @) <input id="set-handle" placeholder="my.shop"></label>
+            <label>شعار کوتاه <input id="set-tagline" placeholder="کیفیت را با ما تجربه کنید"></label>
+            <label>تلفن <input id="set-phone" placeholder="09120000000"></label>
+            <label>متن دکمه سفارش <input id="set-cta" placeholder="برای سفارش دایرکت بده"></label>
+            <label>رنگ اصلی <input type="color" id="set-color1"></label>
+            <label>رنگ دوم <input type="color" id="set-color2"></label>
+            <label>رنگ تاکید (قیمت/تخفیف) <input type="color" id="set-accent"></label>
+            <label>زمان پست روزانه <input type="time" id="set-posttime"></label>
+            <label>زمان استوری اول <input type="time" id="set-storytime"></label>
+            <label>زمان استوری دوم <input type="time" id="set-storytime2"></label>
+          </div>
+          <label class="switch-row">
+            <input type="checkbox" id="set-auto-post"> 🤖 تولید خودکار پست روزانه (ساعت ۹ صبح، نیازمند تأیید تو)
+          </label>
+          <label class="switch-row">
+            <input type="checkbox" id="set-auto-story"> 📱 انتشار خودکار ۲ استوری در روز (نکته/جمله/محصول)
+          </label>
+          <div class="btn-row"><button class="btn primary" onclick="saveSettings()">💾 ذخیره تنظیمات</button></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h2>🔌 اتصال اینستاگرام (API متا)</h2></div>
+          <div id="ig-status" class="ig-status"></div>
+          <label>Access Token (توکن دسترسی)
+            <textarea id="set-token" rows="4" dir="ltr" placeholder="EAAG..."></textarea>
+          </label>
+          <label>شناسه اکانت اینستاگرام بیزینس (Instagram Business ID)
+            <input id="set-igid" dir="ltr" placeholder="1784140...">
+          </label>
+          <div class="btn-row">
+            <button class="btn primary" onclick="testIG()">🧪 تست و ذخیره اتصال</button>
+            <button class="btn" onclick="discoverIG()">🔍 پیدا کردن خودکار اکانت</button>
+            <button class="btn ghost" onclick="checkPublic()">🌐 بررسی دسترسی عمومی سرور</button>
+          </div>
+          <div id="ig-discover-list"></div>
+          <label>آدرس عمومی سرور (برای انتشار خودکار؛ اگر سرور از اینترنت قابل دسترسی باشد)
+            <input id="set-baseurl" dir="ltr" placeholder="https://your-server.example.com">
+          </label>
+          <div class="btn-row"><button class="btn" onclick="saveSettings()">💾 ذخیره تنظیمات</button></div>
+          <details class="guide">
+            <summary>📖 راهنمای قدم‌به‌قدم اتصال به API متا (کلیک کن)</summary>
+            <div class="guide-body" id="guide-body"></div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- مودال -->
+<div id="modal-back" class="modal-back" onclick="closeModal(event)">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
