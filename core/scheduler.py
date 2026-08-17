@@ -178,10 +178,14 @@ def create_story_ai(scheduled_date_iso, product=None):
 
 
 def daily_generate():
-    """هر روز ساعت ۰۹:۰۰ — تولید پست و استوری‌های امروز"""
+    """هر روز ساعت ۰۹:۰۰ — تولید محتوای امروز (فروشگاهی یا خبری)"""
     today = now_tehran()
     date = today.strftime("%Y-%m-%d")
     settings = db.all_settings()
+
+    if settings.get("page_type") == "news":
+        generate_news_content(date)
+        return
 
     if settings.get("auto_publish_stories") == "1":
         for time_str, slot in (("story_time", "اول"), ("story_time_2", "دوم")):
@@ -203,6 +207,118 @@ def daily_generate():
             db.log_activity(f"🤖 پست پیشنهادی امروز ساخته شد و منتظر تأیید توست (انتشار {t}).")
 
 
+def _create_news_post(news_item, iso, status="ai_draft"):
+    from .news import news_caption, is_breaking
+    from .images import NewsRenderer
+    shop = _shop_dict()
+    uid = datetime.now().strftime("%Y%m%d%H%M%S")
+    path = render_path("post", f"news{uid}")
+    NewsRenderer(shop).render(
+        kind="post",
+        headline=news_item["headline"],
+        summary=news_item.get("summary") or "",
+        source=news_item.get("source") or "",
+        category=news_item.get("category") or "عمومی",
+        breaking=is_breaking(news_item["headline"] + " " + (news_item.get("summary") or "")),
+        bg_image_path=news_item.get("image_path") or "",
+        out_path=path,
+    )
+    caption, tags = news_caption(news_item, shop["name"])
+    return db.add_post(
+        "post", title=news_item["headline"][:90], caption=caption,
+        hashtags=tags, image_path=path, template="news",
+        scheduled_at=iso, status=status,
+    )
+
+
+def _create_news_story(news_item, iso):
+    from .news import news_caption, is_breaking
+    from .images import NewsRenderer
+    shop = _shop_dict()
+    uid = datetime.now().strftime("%Y%m%d%H%M%S")
+    path = render_path("story", f"news{uid}")
+    NewsRenderer(shop).render(
+        kind="story",
+        headline=news_item["headline"],
+        summary=news_item.get("summary") or "",
+        source=news_item.get("source") or "",
+        category=news_item.get("category") or "عمومی",
+        breaking=is_breaking(news_item["headline"] + " " + (news_item.get("summary") or "")),
+        out_path=path,
+    )
+    caption, tags = news_caption(news_item, shop["name"], include_link=True)
+    return db.add_post(
+        "story", title=news_item["headline"][:90], caption=caption,
+        hashtags=tags, image_path=path, template="news",
+        scheduled_at=iso, status="scheduled",
+    )
+
+
+def generate_news_content(date=None, fetch_first=True):
+    """ساخت محتوای خبری امروز: ۱ پست پیشنهادی + ۲ استوری از اخبار تازه"""
+    from .news import fetch_all, top_unused
+    date = date or now_tehran().strftime("%Y-%m-%d")
+    settings = db.all_settings()
+
+    if fetch_first:
+        try:
+            stats = fetch_all()
+            if stats["new"]:
+                db.log_activity(f"📰 {stats['new']} خبر جدید از منابع دریافت شد.")
+            elif stats["fetched"]:
+                db.log_activity(f"📰 فیدها بررسی شدند؛ {stats['fetched']} خبر، بدون مورد جدید.")
+        except Exception as e:
+            db.log_activity(f"⚠️ دریافت خبر ناموفق بود: {e}")
+
+    pool = top_unused(6)
+    if not pool:
+        db.log_activity("⚠️ خبر تازه‌ای برای ساخت محتوا پیدا نشد (یا همه استفاده شده‌اند).")
+        return 0
+
+    made = 0
+    t_post = settings.get("post_time") or "20:00"
+    iso_post = f"{date}T{t_post}:00+03:30"
+    if settings.get("auto_generate_posts") == "1":
+        exists = [p for p in db.get_posts(status=["ai_draft", "scheduled", "published"])
+                  if p["kind"] == "post" and p["template"] == "news"
+                  and (p.get("scheduled_at") or "").startswith(iso_post[:16])]
+        if not exists:
+            _create_news_post(pool[0], iso_post)
+            db.mark_news_used(pool[0]["id"])
+            db.log_activity(f"🗞️ پست خبری پیشنهادی امروز ساخته شد و منتظر تأیید توست (انتشار {t_post}).")
+            made += 1
+            pool = pool[1:]
+
+    if settings.get("auto_publish_stories") == "1":
+        for time_str, slot in (("story_time", "اول"), ("story_time_2", "دوم")):
+            t = settings.get(time_str) or ("12:00" if slot == "اول" else "21:00")
+            iso = f"{date}T{t}:00+03:30"
+            exists = [p for p in db.get_posts(status=["scheduled", "ai_draft", "published"])
+                      if p["kind"] == "story" and p["template"] == "news"
+                      and (p.get("scheduled_at") or "").startswith(iso[:16])]
+            if exists or not pool:
+                continue
+            _create_news_story(pool[0], iso)
+            db.mark_news_used(pool[0]["id"])
+            db.log_activity(f"📱 استوری خبری {slot} امروز زمان‌بندی شد ({t}).")
+            made += 1
+            pool = pool[1:]
+    return made
+
+
+def news_fetch_only():
+    """دریافت دوره‌ای اخبار (۰۸:۳۰ و ۱۴:۳۰)"""
+    from .news import fetch_all
+    if db.get_setting("news_auto_fetch") != "1":
+        return
+    try:
+        stats = fetch_all()
+        if stats["new"]:
+            db.log_activity(f"📰 دریافت خودکار: {stats['new']} خبر جدید از منابع خبری.")
+    except Exception as e:
+        db.log_activity(f"⚠️ دریافت خودکار خبر ناموفق بود: {e}")
+
+
 def daily_insights():
     token = db.get_setting("ig_access_token")
     ig_id = db.get_setting("ig_user_id")
@@ -222,6 +338,10 @@ def start():
     _scheduler.add_job(check_due, "interval", minutes=1, id="check_due", max_instances=1)
     _scheduler.add_job(daily_generate, CronTrigger(hour=9, minute=0, timezone=TEHRAN),
                        id="daily_generate", max_instances=1, misfire_grace_time=3600)
+    _scheduler.add_job(news_fetch_only, CronTrigger(hour=8, minute=30, timezone=TEHRAN),
+                       id="news_fetch_morning", max_instances=1, misfire_grace_time=3600)
+    _scheduler.add_job(news_fetch_only, CronTrigger(hour=14, minute=30, timezone=TEHRAN),
+                       id="news_fetch_noon", max_instances=1, misfire_grace_time=3600)
     _scheduler.add_job(daily_insights, CronTrigger(hour=23, minute=45, timezone=TEHRAN),
                        id="daily_insights", max_instances=1, misfire_grace_time=3600)
     _scheduler.start()

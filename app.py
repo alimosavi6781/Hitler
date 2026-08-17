@@ -15,7 +15,8 @@ from core import db, scheduler
 from core.analytics import fetch_and_store, recommendations, weekly_report_text
 from core.content import caption_ideas, generate_caption
 from core.ig_api import IGClient, IGError
-from core.images import PostRenderer
+from core.images import NewsRenderer, PostRenderer
+from core.news import is_breaking, news_caption, seed_real_news
 
 TEHRAN = ZoneInfo("Asia/Tehran")
 BASE = Path(__file__).resolve().parent
@@ -31,7 +32,9 @@ app.mount("/uploads", StaticFiles(directory=db.UPLOAD_DIR), name="uploads")
 def startup():
     db.init_db()
     db.seed_default_tasks()
+    db.seed_news_sources()
     seed_samples()
+    seed_real_news()
     scheduler.start()
 
 
@@ -144,6 +147,7 @@ def state(request: Request):
         "upcoming": upcoming,
         "activity": db.get_activity(12),
         "tasks": db.get_tasks(),
+        "news_count": db.count_news(),
         "now": datetime.now(TEHRAN).isoformat(timespec="seconds"),
     }
 
@@ -153,7 +157,8 @@ def save_settings(payload: dict):
     allowed = {"shop_name", "shop_handle", "shop_tagline", "shop_phone", "phone",
                "cta", "color1", "color2", "accent", "post_time", "story_time",
                "story_time_2", "auto_generate_posts", "auto_publish_stories",
-               "ig_access_token", "ig_user_id", "public_base_url"}
+               "ig_access_token", "ig_user_id", "public_base_url",
+               "page_type", "news_auto_fetch"}
     for k, v in payload.items():
         if k in allowed:
             db.set_setting(k, v)
@@ -360,6 +365,147 @@ def post_package(pid: int):
     buf.seek(0)
     return StreamingResponse(buf, media_type="application/zip",
                              headers={"Content-Disposition": f"attachment; filename=post_{pid}.zip"})
+
+
+# ---------------- اخبار ----------------
+@app.get("/api/news")
+def news_list(limit: int = 40, unused_only: int = 0):
+    return {"news": db.get_news(limit=limit, unused_only=bool(unused_only)),
+            "count": db.count_news()}
+
+
+@app.post("/api/news/fetch")
+def news_fetch():
+    from core.news import fetch_all
+    try:
+        stats = fetch_all()
+    except Exception as e:
+        raise HTTPException(400, f"دریافت اخبار ناموفق بود: {e}")
+    if not stats["fetched"] and stats["errors"]:
+        failed = "، ".join(stats["errors"][:4])
+        raise HTTPException(400, (
+            f"از این سرور امکان اتصال به منابع خبری ({failed}) وجود ندارد "
+            "(اینترنت این محیط محدود است). خبرهایی که قبلاً دریافت شده‌اند موجودند؛ "
+            "می‌توانی خبر دستی اضافه کنی. روی سرور خودت این محدودیت نیست."))
+    if stats["new"]:
+        db.log_activity(f"📰 {stats['new']} خبر جدید از منابع دریافت شد.")
+    return {"ok": True, **stats}
+
+
+@app.post("/api/news/manual")
+def news_manual(payload: dict):
+    headline = (payload.get("headline") or "").strip()
+    if not headline:
+        raise HTTPException(400, "تیتر خبر را وارد کن")
+    from core.news import categorize
+    nid = db.add_news(
+        headline,
+        summary=(payload.get("summary") or "").strip(),
+        link=(payload.get("link") or "").strip(),
+        source=(payload.get("source") or "دستی").strip(),
+        category=payload.get("category") or categorize(headline),
+        published_at=datetime.now(TEHRAN).strftime("%Y-%m-%d %H:%M:%S"),
+    )
+    db.log_activity(f"📰 خبر دستی اضافه شد: {headline[:50]}")
+    return {"ok": True, "id": nid}
+
+
+@app.delete("/api/news/{nid}")
+def news_delete(nid: int):
+    db.delete_news(nid)
+    return {"ok": True}
+
+
+@app.post("/api/news/{nid}/post")
+def news_to_post(nid: int, payload: dict):
+    item = db.get_news_item(nid)
+    if not item:
+        raise HTTPException(404, "خبر پیدا نشد")
+    shop = shop_dict()
+    uid = datetime.now().strftime("%Y%m%d%H%M%S")
+    path = str(db.GEN_DIR / f"post_news{uid}.jpg")
+    NewsRenderer(shop).render(
+        kind="post", headline=item["headline"], summary=item["summary"],
+        source=item["source"], category=item["category"],
+        breaking=is_breaking(item["headline"] + " " + item["summary"]),
+        out_path=path,
+    )
+    caption, tags = news_caption(item, shop["name"])
+    scheduled_at = parse_scheduled(payload.get("scheduled_at"))
+    pid = db.add_post(
+        "post", title=item["headline"][:90], caption=caption, hashtags=tags,
+        image_path=path, template="news",
+        scheduled_at=scheduled_at,
+        status="scheduled" if scheduled_at else "ai_draft",
+    )
+    db.mark_news_used(nid)
+    db.log_activity(f"🗞️ پست خبری از خبر «{item['headline'][:40]}…» ساخته شد.")
+    return {"ok": True, "post": db.get_post(pid)}
+
+
+@app.post("/api/news/{nid}/story")
+def news_to_story(nid: int, payload: dict):
+    item = db.get_news_item(nid)
+    if not item:
+        raise HTTPException(404, "خبر پیدا نشد")
+    shop = shop_dict()
+    uid = datetime.now().strftime("%Y%m%d%H%M%S")
+    path = str(db.GEN_DIR / f"story_news{uid}.jpg")
+    NewsRenderer(shop).render(
+        kind="story", headline=item["headline"], summary=item["summary"],
+        source=item["source"], category=item["category"],
+        breaking=is_breaking(item["headline"] + " " + item["summary"]),
+        out_path=path,
+    )
+    caption, tags = news_caption(item, shop["name"], include_link=True)
+    scheduled_at = parse_scheduled(payload.get("scheduled_at"))
+    pid = db.add_post(
+        "story", title=item["headline"][:90], caption=caption, hashtags=tags,
+        image_path=path, template="news",
+        scheduled_at=scheduled_at,
+        status="scheduled" if scheduled_at else "draft",
+    )
+    db.mark_news_used(nid)
+    db.log_activity(f"📱 استوری خبری از خبر «{item['headline'][:40]}…» ساخته شد.")
+    return {"ok": True, "post": db.get_post(pid)}
+
+
+@app.post("/api/news/generate")
+def news_generate_today():
+    made = scheduler.generate_news_content(fetch_first=True)
+    return {"ok": True, "made": made}
+
+
+@app.get("/api/news/sources")
+def news_sources():
+    return {"sources": db.get_news_sources()}
+
+
+@app.post("/api/news/sources")
+def news_add_source(payload: dict):
+    name = (payload.get("name") or "").strip()
+    url = (payload.get("url") or "").strip()
+    if not name or not url:
+        raise HTTPException(400, "نام و آدرس فید را وارد کن")
+    sid = db.add_news_source(name, url, payload.get("category") or "عمومی",
+                             enabled=1, is_default=0)
+    return {"ok": True, "id": sid}
+
+
+@app.post("/api/news/sources/{sid}")
+def news_update_source(sid: int, payload: dict):
+    fields = {}
+    for k in ("name", "url", "category", "enabled"):
+        if k in payload:
+            fields[k] = payload[k]
+    db.update_news_source(sid, **fields)
+    return {"ok": True}
+
+
+@app.delete("/api/news/sources/{sid}")
+def news_delete_source(sid: int):
+    db.delete_news_source(sid)
+    return {"ok": True}
 
 
 # ---------------- اتصال اینستاگرام ----------------

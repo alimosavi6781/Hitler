@@ -60,11 +60,178 @@ function go(view) {
     v.classList.toggle("active", v.id === "view-" + view));
   if (view === "dashboard") loadState();
   if (view === "calendar") loadCalendar("");
+  if (view === "news") loadNews();
   if (view === "analytics") loadAnalytics();
   if (view === "growth") { loadRecommendations(); loadTasks(); }
   if (view === "products") loadProducts();
   if (view === "settings") fillSettings();
   if (view === "create-post" || view === "create-story") loadProductSelects();
+}
+
+// ---------------- اخبار ----------------
+const CATEGORY_BADGE_COLORS = {
+  "سیاسی": "#fdeaea;color:#b91c1c",
+  "اقتصادی": "#fef3c7;color:#b45309",
+  "ورزشی": "#d9f7ec;color:#047857",
+  "فناوری": "#e3e8ff;color:#4f46e5",
+  "فرهنگی": "#fce7f3;color:#be185d",
+  "حوادث": "#ffedd5;color:#c2410c",
+  "عمومی": "#f1effa;color:#6d6a85",
+};
+function catBadge(cat) {
+  const style = CATEGORY_BADGE_COLORS[cat] || CATEGORY_BADGE_COLORS["عمومی"];
+  return `<span class="badge" style="${style}">${esc(cat)}</span>`;
+}
+
+async function loadNews() {
+  try {
+    const r = await api("/api/news");
+    const news = r.news;
+    const unused = news.filter((n) => !n.used).length;
+    $("#news-cards").innerHTML = `
+      <div class="card"><div class="num">${FA_NUM(r.count)}</div><div class="lbl">📰 کل اخبار آرشیو</div></div>
+      <div class="card amber"><div class="num">${FA_NUM(unused)}</div><div class="lbl">🆕 خبر استفاده‌نشده</div></div>
+      <div class="card"><div class="num">${FA_NUM(news.filter((n) => n.source).length)}</div><div class="lbl">🌐 از منابع مختلف</div></div>`;
+
+    $("#news-list").innerHTML = news.length ? news.map(newsItem).join("") :
+      '<div class="empty">هنوز خبری دریافت نشده. دکمه «🔄 دریافت اخبار» را بزن.</div>';
+    loadNewsSources();
+  } catch (e) { toast(e.message, true); }
+}
+
+function newsItem(n) {
+  const breaking = (n.headline + " " + (n.summary || "")).match(/فوری|لحظاتی پیش|دقایقی پیش|breaking/i);
+  const actions = [];
+  if (!n.used) {
+    actions.push(`<button class="btn small primary" onclick="newsToPost(${n.id})">🖼️ ساخت پست</button>`);
+    actions.push(`<button class="btn small" onclick="newsToStory(${n.id})">📱 ساخت استوری</button>`);
+  }
+  if (n.link) actions.push(`<a class="btn small ghost" href="${esc(n.link)}" target="_blank">🔗 منبع</a>`);
+  actions.push(`<button class="btn small danger" onclick="deleteNewsItem(${n.id})">🗑️</button>`);
+  return `
+    <div class="item news-item">
+      <div class="grow">
+        <div class="t">${breaking ? '<span class="badge" style="background:#dc2626;color:#fff">🔴 فوری</span> ' : ""}${esc(n.headline)}</div>
+        ${n.summary ? `<div class="s news-summary">${esc(n.summary)}</div>` : ""}
+        <div class="s">${catBadge(n.category)} · ${esc(n.source)} · ${n.published_at ? faDateTime(n.published_at.replace(" ", "T") + "+03:30") : "—"}
+        ${n.used ? ' · <span class="badge published">استفاده شده</span>' : ' · <span class="badge ready">جدید</span>'}</div>
+      </div>
+      <div class="btn-row">${actions.join("")}</div>
+    </div>`;
+}
+
+async function fetchNews() {
+  try {
+    const r = await api("/api/news/fetch", { method: "POST", body: {} });
+    toast(`📰 دریافت شد: ${FA_NUM(r.fetched)} خبر بررسی، ${FA_NUM(r.new)} خبر جدید اضافه شد`);
+    loadNews();
+  } catch (e) {
+    toast(e.message, true);
+    loadNews();
+  }
+}
+
+async function generateNewsToday() {
+  try {
+    const r = await api("/api/news/generate", { method: "POST", body: {} });
+    toast(r.made ? `🤖 ${FA_NUM(r.made)} محتوای خبری ساخته و زمان‌بندی شد!` : "⚠️ خبر تازه‌ای برای ساخت محتوا نبود");
+    loadState();
+  } catch (e) { toast(e.message, true); }
+}
+
+function addManualNews() {
+  openModal(`<h3>✍️ افزودن خبر دستی</h3>
+    <label>تیتر خبر <input id="mn-headline"></label>
+    <label>خلاصه (اختیاری) <textarea id="mn-summary" rows="3"></textarea></label>
+    <div class="form-grid">
+      <label>منبع <input id="mn-source" value="دستی"></label>
+      <label>دسته
+        <select id="mn-cat">
+          <option value="سیاسی">سیاسی</option>
+          <option value="اقتصادی">اقتصادی</option>
+          <option value="ورزشی">ورزشی</option>
+          <option value="فناوری">فناوری</option>
+          <option value="فرهنگی">فرهنگی</option>
+          <option value="حوادث">حوادث</option>
+          <option value="عمومی" selected>عمومی</option>
+        </select>
+      </label>
+    </div>
+    <label>لینک خبر (اختیاری) <input id="mn-link" dir="ltr"></label>
+    <div class="btn-row">
+      <button class="btn primary" onclick="saveManualNews()">ذخیره</button>
+      <button class="btn ghost" onclick="closeModal(event)">انصراف</button>
+    </div>`);
+}
+async function saveManualNews() {
+  try {
+    await api("/api/news/manual", {
+      method: "POST",
+      body: {
+        headline: $("#mn-headline").value,
+        summary: $("#mn-summary").value,
+        source: $("#mn-source").value,
+        category: $("#mn-cat").value,
+        link: $("#mn-link").value,
+      },
+    });
+    closeModal(); loadNews(); toast("📰 خبر ذخیره شد");
+  } catch (e) { toast(e.message, true); }
+}
+
+async function newsToPost(id) {
+  try {
+    await api(`/api/news/${id}/post`, { method: "POST", body: {} });
+    toast("🖼️ پست خبری ساخته شد — در تقویم انتشار تأییدش کن");
+    loadNews(); loadState();
+  } catch (e) { toast(e.message, true); }
+}
+async function newsToStory(id) {
+  try {
+    await api(`/api/news/${id}/story`, { method: "POST", body: {} });
+    toast("📱 استوری خبری ساخته و زمان‌بندی شد");
+    loadNews(); loadState();
+  } catch (e) { toast(e.message, true); }
+}
+async function deleteNewsItem(id) {
+  if (!confirm("این خبر حذف شود؟")) return;
+  await api(`/api/news/${id}`, { method: "DELETE" });
+  loadNews();
+}
+
+async function loadNewsSources() {
+  try {
+    const r = await api("/api/news/sources");
+    $("#news-sources").innerHTML = r.sources.map((s) => `
+      <div class="item">
+        <div class="grow">
+          <div class="t">${esc(s.name)} ${s.is_default ? '<span class="badge draft">پیش‌فرض</span>' : ""}</div>
+          <div class="s" dir="ltr" style="text-align:right">${esc(s.url)}</div>
+        </div>
+        <label class="switch-row" style="margin:0">
+          <input type="checkbox" ${s.enabled ? "checked" : ""} onchange="toggleSource(${s.id}, this.checked)">
+        </label>
+        <button class="btn small danger" onclick="deleteSource(${s.id})">🗑️</button>
+      </div>`).join("");
+  } catch (e) { /* ignore */ }
+}
+async function toggleSource(id, enabled) {
+  await api(`/api/news/sources/${id}`, { method: "POST", body: { enabled: enabled ? 1 : 0 } });
+}
+async function deleteSource(id) {
+  if (!confirm("منبع حذف شود؟")) return;
+  await api(`/api/news/sources/${id}`, { method: "DELETE" });
+  loadNewsSources();
+}
+async function addSource() {
+  try {
+    await api("/api/news/sources", {
+      method: "POST",
+      body: { name: $("#src-name").value, url: $("#src-url").value, category: $("#src-cat").value },
+    });
+    $("#src-name").value = $("#src-url").value = "";
+    loadNewsSources(); toast("🌐 منبع اضافه شد");
+  } catch (e) { toast(e.message, true); }
 }
 
 // ---------------- مودال ----------------
@@ -90,7 +257,8 @@ async function loadState() {
       <div class="card amber"><div class="num">${FA_NUM(c.ai_drafts)}</div><div class="lbl">🤖 پیش‌نویس هوشمند (تأیید کن)</div></div>
       <div class="card green"><div class="num">${FA_NUM(c.published)}</div><div class="lbl">✅ منتشر شده</div></div>
       <div class="card"><div class="num">${FA_NUM(c.ready)}</div><div class="lbl">📦 آماده انتشار دستی</div></div>
-      <div class="card"><div class="num">${FA_NUM(c.products)}</div><div class="lbl">🛍️ محصول</div></div>`;
+      <div class="card"><div class="num">${FA_NUM(c.products)}</div><div class="lbl">🛍️ محصول</div></div>
+      <div class="card"><div class="num">${FA_NUM(s.news_count)}</div><div class="lbl">📰 خبر در آرشیو</div></div>`;
 
     $("#dash-upcoming").innerHTML = s.upcoming.length ? s.upcoming.map(upcomingItem).join("") :
       '<div class="empty">چیزی در صف نیست. از «ساخت پست» شروع کن 🚀</div>';
@@ -567,6 +735,8 @@ async function fillSettings() {
   $("#set-storytime2").value = s.story_time_2 || "21:00";
   $("#set-auto-post").checked = s.auto_generate_posts === "1";
   $("#set-auto-story").checked = s.auto_publish_stories === "1";
+  $("#set-news-fetch").checked = s.news_auto_fetch === "1";
+  $("#set-pagetype").value = s.page_type === "news" ? "news" : "shop";
   $("#set-token").value = s.ig_access_token || "";
   $("#set-igid").value = s.ig_user_id || "";
   $("#set-baseurl").value = s.public_base_url || "";
@@ -595,6 +765,8 @@ async function saveSettings() {
     story_time_2: $("#set-storytime2").value,
     auto_generate_posts: $("#set-auto-post").checked ? "1" : "0",
     auto_publish_stories: $("#set-auto-story").checked ? "1" : "0",
+    news_auto_fetch: $("#set-news-fetch").checked ? "1" : "0",
+    page_type: $("#set-pagetype").value || "shop",
     ig_access_token: $("#set-token").value.trim(),
     ig_user_id: $("#set-igid").value.trim(),
     public_base_url: $("#set-baseurl").value.trim(),

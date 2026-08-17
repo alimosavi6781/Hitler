@@ -386,3 +386,104 @@ class PostRenderer:
             Path(out_path).parent.mkdir(parents=True, exist_ok=True)
             img.save(out_path, "JPEG", quality=92)
         return img
+
+
+class NewsRenderer:
+    """رندر تصویر خبری — پست (1080x1080) و استوری (1080x1920)"""
+
+    def __init__(self, shop):
+        self.shop = shop
+        self.handle = shop.get("handle", "")
+        self.name = shop.get("name", "پیج خبری من")
+
+    def _category_colors(self, category):
+        from .news import CATEGORY_COLORS
+        c = CATEGORY_COLORS.get(category, CATEGORY_COLORS["عمومی"])
+        return hex_rgb(c[0]), hex_rgb(c[1]), hex_rgb(c[2])
+
+    def render(self, kind="post", headline="", summary="", source="",
+               category="عمومی", breaking=False, bg_image_path="", out_path=None):
+        W, H = (1080, 1080) if kind == "post" else (1080, 1920)
+        is_story = kind == "story"
+        c1, c2, accent = self._category_colors(category)
+        if breaking:
+            c1, c2, accent = hex_rgb("#991B1B"), hex_rgb("#450A0A"), hex_rgb("#F87171")
+
+        img = gradient_bg((W, H), c1, c2)
+        img = draw_decor(img, c1, c2, seed=random.randint(1, 9999))
+
+        # پس‌زمینه تصویر خبر در صورت وجود
+        if bg_image_path and Path(bg_image_path).exists():
+            try:
+                bg = Image.open(bg_image_path).convert("RGB")
+                bg = cover_fit(bg, W, H)
+                dark = Image.new("RGB", (W, H), (10, 8, 24))
+                img = Image.blend(bg, dark, 0.68)
+            except Exception:
+                pass
+
+        d = ImageDraw.Draw(img)
+        text_color = (255, 255, 255)
+        muted_color = (228, 225, 245)
+
+        # ---------- بالای صفحه: نشان دسته + فوری ----------
+        scale = 1.0
+        badge_y = int(250 * scale) if is_story else int(84 * scale)
+        cat_f = font("bold", int(34 * scale))
+        draw_pill(d, W / 2, badge_y, category, cat_f, (255, 255, 255), accent,
+                  pad_x=34, pad_y=14)
+        y_after_badge = badge_y + cat_f.size + 28
+        if breaking:
+            brk_f = font("black", int(34 * scale))
+            t = shaped("🔴 خبر فوری")
+            w = d.textlength(t, font=brk_f)
+            x0 = W / 2 - w / 2 - 34
+            y0 = y_after_badge + 34
+            d.rounded_rectangle([x0, y0, x0 + w + 68, y0 + brk_f.size + 28],
+                                radius=999, fill=(220, 38, 38))
+            d.text((x0 + 34, y0 + 14), t, font=brk_f, fill=(255, 255, 255))
+            headline_top = y0 + brk_f.size + 28 + (70 if is_story else 48)
+        else:
+            headline_top = y_after_badge + (86 if is_story else 56)
+
+        # ---------- تیتر ----------
+        max_w = int(W * 0.84)
+        hf = fit_font(d, headline, max_w, 76 if is_story else 68,
+                      40, "black")
+        lines = wrap_lines(d, shaped(headline), hf, max_w)[:9 if is_story else 7]
+        y = headline_top
+        for ln in lines:
+            bbox = draw_center(d, W / 2, y, ln, hf, text_color)
+            y = bbox[3] + int(hf.size * 0.42)
+        y += 20
+
+        # ---------- خلاصه ----------
+        if summary:
+            sf = font("regular", 36 if is_story else 33)
+            s_lines = wrap_lines(d, shaped(summary), sf, max_w)[:3 if is_story else 2]
+            for ln in s_lines:
+                bbox = draw_center(d, W / 2, y + 6, ln, sf, muted_color)
+                y = bbox[3] + int(sf.size * 0.38)
+
+        # ---------- منبع ----------
+        source_f = font("semibold", 30)
+        if is_story:
+            src_y = max(1500, y + 80)
+        else:
+            src_y = H - 180
+        draw_pill(d, W / 2, src_y, source or "منبع خبری", source_f,
+                  text_color, (255, 255, 255, 40), pad_x=30, pad_y=12)
+
+        # ---------- هندل ----------
+        if self.handle:
+            hf2 = font("medium", 28)
+            if is_story:
+                draw_center(d, W / 2, 1620, self.handle, hf2, (255, 255, 255, 200))
+            else:
+                draw_center(d, W / 2, src_y + source_f.size + 46, self.handle, hf2,
+                            (255, 255, 255, 200))
+
+        if out_path:
+            Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+            img.save(out_path, "JPEG", quality=92)
+        return img

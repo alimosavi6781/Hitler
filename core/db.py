@@ -71,6 +71,27 @@ CREATE TABLE IF NOT EXISTS tasks (
     text  TEXT,
     done  INTEGER DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS news (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    headline     TEXT NOT NULL,
+    summary      TEXT DEFAULT '',
+    link         TEXT DEFAULT '',
+    source       TEXT DEFAULT '',
+    category     TEXT DEFAULT 'عمومی',
+    image_path   TEXT DEFAULT '',
+    published_at TEXT,
+    fetched_at   TEXT DEFAULT (datetime('now')),
+    used         INTEGER DEFAULT 0,
+    hash         TEXT UNIQUE
+);
+CREATE TABLE IF NOT EXISTS news_sources (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT,
+    url        TEXT,
+    category   TEXT DEFAULT 'عمومی',
+    enabled    INTEGER DEFAULT 1,
+    is_default INTEGER DEFAULT 0
+);
 """
 
 
@@ -102,6 +123,8 @@ def init_db():
             "ig_access_token": "",
             "ig_user_id": "",
             "public_base_url": "",
+            "page_type": "shop",            # shop | news
+            "news_auto_fetch": "1",
             "seeded": "0",
         }
         for k, v in defaults.items():
@@ -301,3 +324,112 @@ def seed_default_tasks():
     if count == 0:
         for t in tips:
             add_task(t)
+
+
+# ---------- اخبار ----------
+def add_news(headline, summary="", link="", source="", category="عمومی",
+             image_path="", published_at=None, hash_key=None):
+    import hashlib
+    hash_key = hash_key or hashlib.md5(headline.strip().encode("utf-8")).hexdigest()
+    with _lock, conn() as c:
+        exists = c.execute("SELECT id FROM news WHERE hash=?", (hash_key,)).fetchone()
+        if exists:
+            return None
+        cur = c.execute(
+            "INSERT INTO news(headline,summary,link,source,category,image_path,published_at,hash) "
+            "VALUES(?,?,?,?,?,?,?,?)",
+            (headline, summary, link, source, category, image_path, published_at, hash_key),
+        )
+        return cur.lastrowid
+
+
+def get_news(limit=50, unused_only=False, category=""):
+    q = "SELECT * FROM news"
+    conds, args = [], []
+    if unused_only:
+        conds.append("used=0")
+    if category:
+        conds.append("category=?")
+        args.append(category)
+    if conds:
+        q += " WHERE " + " AND ".join(conds)
+    q += " ORDER BY COALESCE(published_at, fetched_at) DESC LIMIT ?"
+    args.append(limit)
+    with conn() as c:
+        return [dict(r) for r in c.execute(q, args)]
+
+
+def get_news_item(nid):
+    with conn() as c:
+        r = c.execute("SELECT * FROM news WHERE id=?", (nid,)).fetchone()
+    return dict(r) if r else None
+
+
+def mark_news_used(nid):
+    with _lock, conn() as c:
+        c.execute("UPDATE news SET used=1 WHERE id=?", (nid,))
+
+
+def delete_news(nid):
+    with _lock, conn() as c:
+        c.execute("DELETE FROM news WHERE id=?", (nid,))
+
+
+def count_news():
+    with conn() as c:
+        return c.execute("SELECT COUNT(*) n FROM news").fetchone()["n"]
+
+
+# ---------- منابع خبری ----------
+DEFAULT_NEWS_SOURCES = [
+    ("بی‌بی‌سی فارسی", "https://feeds.bbci.co.uk/persian/rss.xml", "جهان"),
+    ("ایرنا — خبرگزاری جمهوری اسلامی", "https://www.irna.ir/rss", "ایران"),
+    ("ایسنا", "https://www.isna.ir/rss", "ایران"),
+    ("مهر", "https://www.mehrnews.com/rss", "ایران"),
+    ("یورونیوز فارسی", "https://per.euronews.com/rss?format=mrss", "جهان"),
+    ("گوگل‌نیوز — اخبار ایران", "https://news.google.com/rss/search?q=اخبار+مهم+ایران&hl=fa&gl=IR&ceid=IR:fa", "ایران"),
+    ("گوگل‌نیوز — اخبار جهان", "https://news.google.com/rss/headlines/section/topic/WORLD?hl=fa&gl=IR&ceid=IR:fa", "جهان"),
+    ("فرانس۲۴ فارسی", "https://www.france24.com/fa/rss", "جهان"),
+    ("خبرآنلاین", "https://www.khabaronline.ir/rss", "ایران"),
+]
+
+
+def seed_news_sources():
+    with conn() as c:
+        count = c.execute("SELECT COUNT(*) n FROM news_sources").fetchone()["n"]
+    if count == 0:
+        for name, url, cat in DEFAULT_NEWS_SOURCES:
+            add_news_source(name, url, cat, enabled=1, is_default=1)
+
+
+def add_news_source(name, url, category="عمومی", enabled=1, is_default=0):
+    with _lock, conn() as c:
+        cur = c.execute(
+            "INSERT INTO news_sources(name,url,category,enabled,is_default) VALUES(?,?,?,?,?)",
+            (name, url, category, enabled, is_default),
+        )
+        return cur.lastrowid
+
+
+def get_news_sources():
+    with conn() as c:
+        return [dict(r) for r in c.execute("SELECT * FROM news_sources ORDER BY id")]
+
+
+def update_news_source(sid, **fields):
+    allowed = {"name", "url", "category", "enabled"}
+    sets, args = [], []
+    for k, v in fields.items():
+        if k in allowed:
+            sets.append(f"{k}=?")
+            args.append(v)
+    if not sets:
+        return
+    args.append(sid)
+    with _lock, conn() as c:
+        c.execute(f"UPDATE news_sources SET {','.join(sets)} WHERE id=?", args)
+
+
+def delete_news_source(sid):
+    with _lock, conn() as c:
+        c.execute("DELETE FROM news_sources WHERE id=?", (sid,))
