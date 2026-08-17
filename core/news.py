@@ -259,7 +259,8 @@ def news_caption(news, shop_name="", include_link=True):
     if include_link and news.get("link"):
         parts.append(f"مشروح خبر: {news['link']}")
     parts.append(f"منبع: {source}")
-    tags = ["#خبر", "#اخبار_روز", f"#اخبار_{news.get('category', 'عمومی')}"]
+    cat = str(news.get("category", "عمومی")).replace(" ", "_")
+    tags = ["#خبر", "#اخبار_روز", f"#اخبار_{cat}"]
     if is_breaking(headline + " " + summary):
         tags.insert(0, "#خبر_فوری")
     if shop_name:
