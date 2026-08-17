@@ -123,7 +123,9 @@ function newsItem(n) {
 async function fetchNews() {
   try {
     const r = await api("/api/news/fetch", { method: "POST", body: {} });
-    toast(`📰 دریافت شد: ${FA_NUM(r.fetched)} خبر بررسی، ${FA_NUM(r.new)} خبر جدید اضافه شد`);
+    const extra = r.instant_stories ? ` — ⚡ ${FA_NUM(r.instant_stories)} استوری فوری ساخته شد!` : "";
+    toast(`📰 دریافت شد: ${FA_NUM(r.fetched)} خبر بررسی، ${FA_NUM(r.new)} خبر جدید${extra}`);
+    if (r.instant_stories) loadState();
     loadNews();
   } catch (e) {
     toast(e.message, true);
@@ -165,7 +167,7 @@ function addManualNews() {
 }
 async function saveManualNews() {
   try {
-    await api("/api/news/manual", {
+    const r = await api("/api/news/manual", {
       method: "POST",
       body: {
         headline: $("#mn-headline").value,
@@ -175,21 +177,55 @@ async function saveManualNews() {
         link: $("#mn-link").value,
       },
     });
-    closeModal(); loadNews(); toast("📰 خبر ذخیره شد");
+    closeModal(); loadNews();
+    if (r.instant_stories) { toast("⚡ خبر فوری! استوری فوری ساخته شد و ۱۰ دقیقه دیگر منتشر می‌شود"); loadState(); }
+    else toast("📰 خبر ذخیره شد");
   } catch (e) { toast(e.message, true); }
 }
 
-async function newsToPost(id) {
-  try {
-    await api(`/api/news/${id}/post`, { method: "POST", body: {} });
-    toast("🖼️ پست خبری ساخته شد — در تقویم انتشار تأییدش کن");
-    loadNews(); loadState();
-  } catch (e) { toast(e.message, true); }
+async function _getNewsItem(id) {
+  const r = await api("/api/news");
+  return r.news.find((x) => x.id === id);
 }
-async function newsToStory(id) {
+
+function newsTemplateModal(id, kind) {
+  _getNewsItem(id).then((n) => {
+    if (!n) { toast("خبر یافت نشد", true); return; }
+    const stats = n.stats || [];
+    const quotes = n.quotes || [];
+    const autoTpl = quotes.length ? "quote" : (stats.length >= 2 ? "stats" : "standard");
+    const labels = { standard: "📰 استاندارد — تیتر بزرگ + خلاصه", stats: "📊 آماری — کارت اعداد کلیدی خبر", quote: "💬 نقل‌قول — نمایش متن داخل گیومه", auto: "✨ خودکار (هوشمند)" };
+    openModal(`<h3>${kind === "post" ? "🖼️ ساخت پست" : "📱 ساخت استوری"} خبری</h3>
+      <div class="idea" style="cursor:default"><b>${esc(n.headline)}</b>
+        ${n.summary ? `<div class="s" style="margin-top:6px">${esc(n.summary)}</div>` : ""}</div>
+      <label style="margin-bottom:10px">قالب تصویر
+        <select id="ntpl">
+          <option value="auto">${labels.auto} → ${labels[autoTpl]}</option>
+          <option value="standard">${labels.standard}</option>
+          <option value="stats" ${stats.length >= 2 ? "" : "disabled"}>${labels.stats}${stats.length >= 2 ? "" : " (عددی در خبر نیست)"}</option>
+          <option value="quote" ${quotes.length ? "" : "disabled"}>${labels.quote}${quotes.length ? "" : " (نقل‌قولی در خبر نیست)"}</option>
+        </select>
+      </label>
+      <label>زمان انتشار (خالی = ${kind === "post" ? "پیش‌نویس برای تأیید" : "پیش‌نویس"})
+        <input type="datetime-local" id="ntime">
+      </label>
+      <div class="btn-row">
+        <button class="btn primary" onclick="confirmNewsCreate(${id}, '${kind}')">ساخت</button>
+        <button class="btn ghost" onclick="closeModal(event)">انصراف</button>
+      </div>`);
+  }).catch((e) => toast(e.message, true));
+}
+
+async function newsToPost(id) { newsTemplateModal(id, "post"); }
+async function newsToStory(id) { newsTemplateModal(id, "story"); }
+
+async function confirmNewsCreate(id, kind) {
   try {
-    await api(`/api/news/${id}/story`, { method: "POST", body: {} });
-    toast("📱 استوری خبری ساخته و زمان‌بندی شد");
+    const body = { template: $("#ntpl").value, scheduled_at: $("#ntime").value || null };
+    const r = await api(`/api/news/${id}/${kind}`, { method: "POST", body });
+    closeModal();
+    if (kind === "post") toast("🖼️ پست خبری ساخته شد — در تقویم انتشار تأییدش کن");
+    else toast("📱 استوری خبری ساخته شد");
     loadNews(); loadState();
   } catch (e) { toast(e.message, true); }
 }
@@ -736,6 +772,7 @@ async function fillSettings() {
   $("#set-auto-post").checked = s.auto_generate_posts === "1";
   $("#set-auto-story").checked = s.auto_publish_stories === "1";
   $("#set-news-fetch").checked = s.news_auto_fetch === "1";
+  $("#set-news-instant").checked = s.news_breaking_instant === "1";
   $("#set-pagetype").value = s.page_type === "news" ? "news" : "shop";
   $("#set-token").value = s.ig_access_token || "";
   $("#set-igid").value = s.ig_user_id || "";
@@ -766,6 +803,7 @@ async function saveSettings() {
     auto_generate_posts: $("#set-auto-post").checked ? "1" : "0",
     auto_publish_stories: $("#set-auto-story").checked ? "1" : "0",
     news_auto_fetch: $("#set-news-fetch").checked ? "1" : "0",
+    news_breaking_instant: $("#set-news-instant").checked ? "1" : "0",
     page_type: $("#set-pagetype").value || "shop",
     ig_access_token: $("#set-token").value.trim(),
     ig_user_id: $("#set-igid").value.trim(),

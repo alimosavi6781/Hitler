@@ -388,8 +388,11 @@ class PostRenderer:
         return img
 
 
+
+
 class NewsRenderer:
-    """رندر تصویر خبری — پست (1080x1080) و استوری (1080x1920)"""
+    """رندر تصویر خبری — پست (1080x1080) و استوری (1080x1920)
+    قالب‌ها: standard (استاندارد) | stats (آماری) | quote (نقل‌قول)"""
 
     def __init__(self, shop):
         self.shop = shop
@@ -402,7 +405,8 @@ class NewsRenderer:
         return hex_rgb(c[0]), hex_rgb(c[1]), hex_rgb(c[2])
 
     def render(self, kind="post", headline="", summary="", source="",
-               category="عمومی", breaking=False, bg_image_path="", out_path=None):
+               category="عمومی", breaking=False, bg_image_path="", out_path=None,
+               template="standard", stats=None, quotes=None):
         W, H = (1080, 1080) if kind == "post" else (1080, 1920)
         is_story = kind == "story"
         c1, c2, accent = self._category_colors(category)
@@ -412,7 +416,6 @@ class NewsRenderer:
         img = gradient_bg((W, H), c1, c2)
         img = draw_decor(img, c1, c2, seed=random.randint(1, 9999))
 
-        # پس‌زمینه تصویر خبر در صورت وجود
         if bg_image_path and Path(bg_image_path).exists():
             try:
                 bg = Image.open(bg_image_path).convert("RGB")
@@ -423,58 +426,50 @@ class NewsRenderer:
                 pass
 
         d = ImageDraw.Draw(img)
-        text_color = (255, 255, 255)
-        muted_color = (228, 225, 245)
+        stats = [s for s in (stats or []) if s.get("number")][:3]
+        quotes = [q for q in (quotes or []) if q][:1]
 
-        # ---------- بالای صفحه: نشان دسته + فوری ----------
-        scale = 1.0
-        badge_y = int(250 * scale) if is_story else int(84 * scale)
-        cat_f = font("bold", int(34 * scale))
-        draw_pill(d, W / 2, badge_y, category, cat_f, (255, 255, 255), accent,
+        if template == "quote" and quotes:
+            self._render_quote(d, W, H, is_story, headline, quotes[0],
+                               source, category, accent, breaking)
+        elif template == "stats" and stats:
+            self._render_stats(d, W, H, is_story, headline, stats,
+                               source, category, accent, breaking, c2)
+        else:
+            self._render_standard(d, W, H, is_story, headline, summary,
+                                  source, category, accent, breaking)
+
+        if out_path:
+            Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+            img.save(out_path, "JPEG", quality=92)
+        return img
+
+    # ---------- اجزای مشترک ----------
+    def _draw_badge(self, d, W, y, category, accent, breaking):
+        """نشان دسته (+ نشان خبر فوری) — برمی‌گرداند y بعد از نشان‌ها"""
+        cat_f = font("bold", 34)
+        draw_pill(d, W / 2, y, category, cat_f, (255, 255, 255), accent,
                   pad_x=34, pad_y=14)
-        y_after_badge = badge_y + cat_f.size + 28
+        y += cat_f.size + 28
         if breaking:
-            brk_f = font("black", int(34 * scale))
+            brk_f = font("black", 34)
             t = shaped("🔴 خبر فوری")
             w = d.textlength(t, font=brk_f)
             x0 = W / 2 - w / 2 - 34
-            y0 = y_after_badge + 34
-            d.rounded_rectangle([x0, y0, x0 + w + 68, y0 + brk_f.size + 28],
+            d.rounded_rectangle([x0, y + 30, x0 + w + 68, y + 30 + brk_f.size + 28],
                                 radius=999, fill=(220, 38, 38))
-            d.text((x0 + 34, y0 + 14), t, font=brk_f, fill=(255, 255, 255))
-            headline_top = y0 + brk_f.size + 28 + (70 if is_story else 48)
-        else:
-            headline_top = y_after_badge + (86 if is_story else 56)
+            d.text((x0 + 34, y + 44), t, font=brk_f, fill=(255, 255, 255))
+            y += brk_f.size + 28 + 58
+        return y
 
-        # ---------- تیتر ----------
-        max_w = int(W * 0.84)
-        hf = fit_font(d, headline, max_w, 76 if is_story else 68,
-                      40, "black")
-        lines = wrap_lines(d, shaped(headline), hf, max_w)[:9 if is_story else 7]
-        y = headline_top
-        for ln in lines:
-            bbox = draw_center(d, W / 2, y, ln, hf, text_color)
-            y = bbox[3] + int(hf.size * 0.42)
-        y += 20
-
-        # ---------- خلاصه ----------
-        if summary:
-            sf = font("regular", 36 if is_story else 33)
-            s_lines = wrap_lines(d, shaped(summary), sf, max_w)[:3 if is_story else 2]
-            for ln in s_lines:
-                bbox = draw_center(d, W / 2, y + 6, ln, sf, muted_color)
-                y = bbox[3] + int(sf.size * 0.38)
-
-        # ---------- منبع ----------
+    def _draw_source(self, d, W, H, is_story, source, y_after_content):
         source_f = font("semibold", 30)
         if is_story:
-            src_y = max(1500, y + 80)
+            src_y = max(1500, y_after_content + 80)
         else:
             src_y = H - 180
         draw_pill(d, W / 2, src_y, source or "منبع خبری", source_f,
-                  text_color, (255, 255, 255, 40), pad_x=30, pad_y=12)
-
-        # ---------- هندل ----------
+                  (255, 255, 255), (255, 255, 255, 40), pad_x=30, pad_y=12)
         if self.handle:
             hf2 = font("medium", 28)
             if is_story:
@@ -483,7 +478,97 @@ class NewsRenderer:
                 draw_center(d, W / 2, src_y + source_f.size + 46, self.handle, hf2,
                             (255, 255, 255, 200))
 
-        if out_path:
-            Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-            img.save(out_path, "JPEG", quality=92)
-        return img
+    # ---------- قالب استاندارد ----------
+    def _render_standard(self, d, W, H, is_story, headline, summary, source, category, accent, breaking):
+        text_color = (255, 255, 255)
+        muted_color = (228, 225, 245)
+        y = self._draw_badge(d, W, 250 if is_story else 84, category, accent, breaking)
+        y += 86 if is_story else 56
+        max_w = int(W * 0.84)
+        hf = fit_font(d, headline, max_w, 76 if is_story else 68, 40, "black")
+        for ln in wrap_lines(d, shaped(headline), hf, max_w)[:9 if is_story else 7]:
+            bbox = draw_center(d, W / 2, y, ln, hf, text_color)
+            y = bbox[3] + int(hf.size * 0.42)
+        y += 20
+        if summary:
+            sf = font("regular", 36 if is_story else 33)
+            for ln in wrap_lines(d, shaped(summary), sf, max_w)[:3 if is_story else 2]:
+                bbox = draw_center(d, W / 2, y + 6, ln, sf, muted_color)
+                y = bbox[3] + int(sf.size * 0.38)
+        self._draw_source(d, W, H, is_story, source, y)
+
+    # ---------- قالب نقل‌قول ----------
+    def _render_quote(self, d, W, H, is_story, headline, quote, source, category, accent, breaking):
+        text_color = (255, 255, 255)
+        y = self._draw_badge(d, W, 250 if is_story else 84, category, accent, breaking)
+        y += 56 if is_story else 36
+        max_w = int(W * 0.8)
+        # تیتر کوچک به عنوان زمینه
+        ctx_f = font("regular", 30)
+        for ln in wrap_lines(d, shaped(headline), ctx_f, max_w)[:2]:
+            bbox = draw_center(d, W / 2, y, ln, ctx_f, (228, 225, 245))
+            y = bbox[3] + int(ctx_f.size * 0.3)
+        y += 100 if is_story else 64
+        # علامت باز نقل‌قول
+        qf = font("black", 120)
+        draw_center(d, W / 2, y - 10, "«", qf, accent)
+        y += qf.size - 36
+        # متن نقل‌قول
+        qtext_f = fit_font(d, quote, max_w, 62 if is_story else 52, 34, "bold")
+        for ln in wrap_lines(d, shaped(quote), qtext_f, max_w)[:6 if is_story else 5]:
+            bbox = draw_center(d, W / 2, y, ln, qtext_f, text_color)
+            y = bbox[3] + int(qtext_f.size * 0.5)
+        y += 30
+        draw_center(d, W / 2, y - 24, "»", qf, accent)
+        y += qf.size - 60
+        self._draw_source(d, W, H, is_story, source, y)
+
+    # ---------- قالب آماری ----------
+    def _stat_card(self, d, x0, y0, x1, y1, s, accent, card_fill):
+        d.rounded_rectangle([x0, y0, x1, y1], radius=26, fill=card_fill)
+        cx = (x0 + x1) / 2
+        cy = (y0 + y1) / 2
+        num = fa_num(s["number"])
+        unit = s.get("unit") or ""
+        nf = font("black", 56)
+        uf = font("semibold", 30)
+        total_h = nf.size + (uf.size + 16 if unit else 0)
+        top = cy - total_h / 2
+        draw_center(d, cx, top, num, nf, accent)
+        if unit:
+            draw_center(d, cx, top + nf.size + 12, unit, uf, (255, 255, 255, 235))
+
+    def _render_stats(self, d, W, H, is_story, headline, stats, source, category, accent, breaking, c2):
+        text_color = (255, 255, 255)
+        y = self._draw_badge(d, W, 250 if is_story else 84, category, accent, breaking)
+        y += 70 if is_story else 44
+        max_w = int(W * 0.84)
+        hf = fit_font(d, headline, max_w, 60 if is_story else 54, 34, "black")
+        for ln in wrap_lines(d, shaped(headline), hf, max_w)[:3]:
+            bbox = draw_center(d, W / 2, y, ln, hf, text_color)
+            y = bbox[3] + int(hf.size * 0.36)
+        y += 50 if is_story else 42
+        card_fill = lerp(c2, (6, 4, 18), 0.4)
+
+        if is_story:
+            card_w = int(W * 0.78)
+            card_h = 136
+            gap = 26
+            for s in stats:
+                x0 = (W - card_w) / 2
+                self._stat_card(d, x0, y, x0 + card_w, y + card_h, s, accent, card_fill)
+                y += card_h + gap
+        else:
+            n = len(stats)
+            if n == 3:
+                widths = [264, 264, 264]
+            elif n == 2:
+                widths = [396, 396]
+            else:
+                widths = [560]
+            total = sum(widths) + 24 * (n - 1)
+            x = (W - total) / 2
+            for w_, s in zip(widths, stats):
+                self._stat_card(d, x, y, x + w_, y + 152, s, accent, card_fill)
+                x += w_ + 24
+        self._draw_source(d, W, H, is_story, source, y)

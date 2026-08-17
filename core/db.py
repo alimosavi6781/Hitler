@@ -125,6 +125,7 @@ def init_db():
             "public_base_url": "",
             "page_type": "shop",            # shop | news
             "news_auto_fetch": "1",
+            "news_breaking_instant": "1",
             "seeded": "0",
         }
         for k, v in defaults.items():

@@ -158,7 +158,7 @@ def save_settings(payload: dict):
                "cta", "color1", "color2", "accent", "post_time", "story_time",
                "story_time_2", "auto_generate_posts", "auto_publish_stories",
                "ig_access_token", "ig_user_id", "public_base_url",
-               "page_type", "news_auto_fetch"}
+               "page_type", "news_auto_fetch", "news_breaking_instant"}
     for k, v in payload.items():
         if k in allowed:
             db.set_setting(k, v)
@@ -368,9 +368,18 @@ def post_package(pid: int):
 
 
 # ---------------- اخبار ----------------
+def _news_view(item):
+    from core.news import extract_quotes, extract_numbers
+    item = dict(item)
+    full = (item.get("summary") or "") + " " + (item.get("headline") or "")
+    item["stats"] = extract_numbers(full)
+    item["quotes"] = extract_quotes(full)
+    return item
+
+
 @app.get("/api/news")
 def news_list(limit: int = 40, unused_only: int = 0):
-    return {"news": db.get_news(limit=limit, unused_only=bool(unused_only)),
+    return {"news": [_news_view(n) for n in db.get_news(limit=limit, unused_only=bool(unused_only))],
             "count": db.count_news()}
 
 
@@ -389,7 +398,8 @@ def news_fetch():
             "می‌توانی خبر دستی اضافه کنی. روی سرور خودت این محدودیت نیست."))
     if stats["new"]:
         db.log_activity(f"📰 {stats['new']} خبر جدید از منابع دریافت شد.")
-    return {"ok": True, **stats}
+    made_instant = scheduler.instant_breaking_stories()
+    return {"ok": True, "instant_stories": made_instant, **stats}
 
 
 @app.post("/api/news/manual")
@@ -407,7 +417,8 @@ def news_manual(payload: dict):
         published_at=datetime.now(TEHRAN).strftime("%Y-%m-%d %H:%M:%S"),
     )
     db.log_activity(f"📰 خبر دستی اضافه شد: {headline[:50]}")
-    return {"ok": True, "id": nid}
+    made_instant = scheduler.instant_breaking_stories()
+    return {"ok": True, "id": nid, "instant_stories": made_instant}
 
 
 @app.delete("/api/news/{nid}")
@@ -421,6 +432,8 @@ def news_to_post(nid: int, payload: dict):
     item = db.get_news_item(nid)
     if not item:
         raise HTTPException(404, "خبر پیدا نشد")
+    from core.news import template_data
+    tpl, stats, quotes = template_data(item, payload.get("template", "auto"))
     shop = shop_dict()
     uid = datetime.now().strftime("%Y%m%d%H%M%S")
     path = str(db.GEN_DIR / f"post_news{uid}.jpg")
@@ -428,7 +441,7 @@ def news_to_post(nid: int, payload: dict):
         kind="post", headline=item["headline"], summary=item["summary"],
         source=item["source"], category=item["category"],
         breaking=is_breaking(item["headline"] + " " + item["summary"]),
-        out_path=path,
+        out_path=path, template=tpl, stats=stats, quotes=quotes,
     )
     caption, tags = news_caption(item, shop["name"])
     scheduled_at = parse_scheduled(payload.get("scheduled_at"))
@@ -439,8 +452,8 @@ def news_to_post(nid: int, payload: dict):
         status="scheduled" if scheduled_at else "ai_draft",
     )
     db.mark_news_used(nid)
-    db.log_activity(f"🗞️ پست خبری از خبر «{item['headline'][:40]}…» ساخته شد.")
-    return {"ok": True, "post": db.get_post(pid)}
+    db.log_activity(f"🗞️ پست خبری (قالب {tpl}) از خبر «{item['headline'][:40]}…» ساخته شد.")
+    return {"ok": True, "post": db.get_post(pid), "template_used": tpl}
 
 
 @app.post("/api/news/{nid}/story")
@@ -448,6 +461,8 @@ def news_to_story(nid: int, payload: dict):
     item = db.get_news_item(nid)
     if not item:
         raise HTTPException(404, "خبر پیدا نشد")
+    from core.news import template_data
+    tpl, stats, quotes = template_data(item, payload.get("template", "auto"))
     shop = shop_dict()
     uid = datetime.now().strftime("%Y%m%d%H%M%S")
     path = str(db.GEN_DIR / f"story_news{uid}.jpg")
@@ -455,7 +470,7 @@ def news_to_story(nid: int, payload: dict):
         kind="story", headline=item["headline"], summary=item["summary"],
         source=item["source"], category=item["category"],
         breaking=is_breaking(item["headline"] + " " + item["summary"]),
-        out_path=path,
+        out_path=path, template=tpl, stats=stats, quotes=quotes,
     )
     caption, tags = news_caption(item, shop["name"], include_link=True)
     scheduled_at = parse_scheduled(payload.get("scheduled_at"))
@@ -466,8 +481,8 @@ def news_to_story(nid: int, payload: dict):
         status="scheduled" if scheduled_at else "draft",
     )
     db.mark_news_used(nid)
-    db.log_activity(f"📱 استوری خبری از خبر «{item['headline'][:40]}…» ساخته شد.")
-    return {"ok": True, "post": db.get_post(pid)}
+    db.log_activity(f"📱 استوری خبری (قالب {tpl}) از خبر «{item['headline'][:40]}…» ساخته شد.")
+    return {"ok": True, "post": db.get_post(pid), "template_used": tpl}
 
 
 @app.post("/api/news/generate")

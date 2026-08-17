@@ -35,6 +35,66 @@ CATEGORY_KEYWORDS = {
 }
 BREAKING_WORDS = ["فوری", "لحظاتی پیش", "دقایقی پیش", "breaking", "BREAKING", "عاجل"]
 
+FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
+
+
+def fa_to_en(text):
+    out = []
+    for ch in str(text):
+        out.append(str(FA_DIGITS.index(ch)) if ch in FA_DIGITS else ch)
+    return "".join(out)
+
+
+NUMBER_RE = re.compile(
+    r"([\d۰-۹][\d۰-۹٬,\.]*[\d۰-۹]?)\s*"
+    r"(هزار|میلیون|میلیارد)?\s*"
+    r"(٪|درصد|تومان|ریال|دلار|یورو|ریشتر|نفر|کیلومتر|کیلو|تن|بشکه|واحد|دستگاه|درجه|مگاوات|متر|سانتی‌متر)?",
+    re.UNICODE)
+
+
+def extract_numbers(text, limit=3):
+    """استخراج اعداد کلیدی خبر همراه واحدشان (برای قالب آماری)"""
+    text = text or ""
+    found = []
+    for m in NUMBER_RE.finditer(text):
+        num = fa_to_en(m.group(1)).replace("٬", ",")
+        scale = m.group(2)
+        unit = m.group(3) or ""
+        if scale:
+            num = num + " " + scale
+        if not unit and len(num.replace(",", "").replace(".", "")) == 4:
+            continue  # احتمالاً سال میلادی/شمسی است
+        found.append({"number": num, "unit": unit})
+        if len(found) >= limit:
+            break
+    return found
+
+
+def extract_quotes(text, limit=2):
+    """استخراج نقل‌قول‌های داخل گیومه از متن خبر (برای قالب نقل‌قول)"""
+    text = text or ""
+    out = []
+    for m in re.finditer(r"«([^»]{8,220})»", text):
+        out.append(m.group(1).strip())
+        if len(out) >= limit:
+            break
+    if not out:
+        for m in re.finditer(r'"([^"]{8,220})"', text):
+            out.append(m.group(1).strip())
+            if len(out) >= limit:
+                break
+    return out
+
+
+def template_data(item, template="auto"):
+    """انتخاب هوشمند قالب + داده‌های لازم برای رندر"""
+    full = ((item.get("summary") or "") + " " + (item.get("headline") or ""))
+    quotes = extract_quotes(full)
+    stats = extract_numbers(full)
+    if template == "auto":
+        template = "quote" if quotes else ("stats" if len(stats) >= 2 else "standard")
+    return template, stats, quotes
+
 CATEGORY_COLORS = {
     "سیاسی": ("#B91C1C", "#7F1D1D", "#FCA5A5"),
     "اقتصادی": ("#B45309", "#78350F", "#FCD34D"),

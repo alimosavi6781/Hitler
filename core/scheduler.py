@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """زمان‌بند: انتشار خودکار پست/استوری، تولید محتوای روزانه و جمع‌آوری اینسایت"""
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -207,10 +207,11 @@ def daily_generate():
             db.log_activity(f"🤖 پست پیشنهادی امروز ساخته شد و منتظر تأیید توست (انتشار {t}).")
 
 
-def _create_news_post(news_item, iso, status="ai_draft"):
-    from .news import news_caption, is_breaking
+def _create_news_post(news_item, iso, status="ai_draft", template="auto"):
+    from .news import news_caption, is_breaking, template_data
     from .images import NewsRenderer
     shop = _shop_dict()
+    tpl, stats, quotes = template_data(news_item, template)
     uid = datetime.now().strftime("%Y%m%d%H%M%S")
     path = render_path("post", f"news{uid}")
     NewsRenderer(shop).render(
@@ -221,7 +222,7 @@ def _create_news_post(news_item, iso, status="ai_draft"):
         category=news_item.get("category") or "عمومی",
         breaking=is_breaking(news_item["headline"] + " " + (news_item.get("summary") or "")),
         bg_image_path=news_item.get("image_path") or "",
-        out_path=path,
+        out_path=path, template=tpl, stats=stats, quotes=quotes,
     )
     caption, tags = news_caption(news_item, shop["name"])
     return db.add_post(
@@ -231,10 +232,11 @@ def _create_news_post(news_item, iso, status="ai_draft"):
     )
 
 
-def _create_news_story(news_item, iso):
-    from .news import news_caption, is_breaking
+def _create_news_story(news_item, iso, template="auto"):
+    from .news import news_caption, is_breaking, template_data
     from .images import NewsRenderer
     shop = _shop_dict()
+    tpl, stats, quotes = template_data(news_item, template)
     uid = datetime.now().strftime("%Y%m%d%H%M%S")
     path = render_path("story", f"news{uid}")
     NewsRenderer(shop).render(
@@ -244,7 +246,7 @@ def _create_news_story(news_item, iso):
         source=news_item.get("source") or "",
         category=news_item.get("category") or "عمومی",
         breaking=is_breaking(news_item["headline"] + " " + (news_item.get("summary") or "")),
-        out_path=path,
+        out_path=path, template=tpl, stats=stats, quotes=quotes,
     )
     caption, tags = news_caption(news_item, shop["name"], include_link=True)
     return db.add_post(
@@ -306,8 +308,47 @@ def generate_news_content(date=None, fetch_first=True):
     return made
 
 
+def instant_breaking_stories():
+    """⚡ به محض رسیدن خبر فوری، بلافاصله استوری فوری بساز (انتشار ۱۰ دقیقه بعد)"""
+    from .news import is_breaking
+    if db.get_setting("news_breaking_instant") != "1":
+        return 0
+    if db.get_setting("page_type") != "news":
+        return 0
+    made = 0
+    for item in db.get_news(limit=60, unused_only=True):
+        if not is_breaking(item["headline"] + " " + (item.get("summary") or "")):
+            continue
+        # فقط خبرهای تازه (کمتر از ۲۴ ساعت)
+        pub = item.get("published_at") or ""
+        if pub:
+            try:
+                ts = datetime.strptime(pub[:19], "%Y-%m-%d %H:%M:%S")
+                age_h = (now_tehran() - ts.replace(tzinfo=TEHRAN)).total_seconds() / 3600
+                if age_h > 24:
+                    continue
+            except ValueError:
+                pass
+        # جلوگیری از تکراری شدن
+        existing = [p for p in db.get_posts(kind="story")
+                    if p["template"] == "news" and p["title"] == item["headline"][:90]]
+        if existing:
+            db.mark_news_used(item["id"])
+            continue
+        publish_at = (now_tehran() + timedelta(minutes=10)).replace(second=0, microsecond=0)
+        _create_news_story(item, publish_at.isoformat(timespec="seconds"))
+        db.mark_news_used(item["id"])
+        db.log_activity(
+            f"⚡ خبر فوری رسید — استوری فوری برای «{item['headline'][:40]}…» ساخته شد "
+            f"(انتشار {publish_at.strftime('%H:%M')}).")
+        made += 1
+        if made >= 2:
+            break
+    return made
+
+
 def news_fetch_only():
-    """دریافت دوره‌ای اخبار (۰۸:۳۰ و ۱۴:۳۰)"""
+    """دریافت دوره‌ای اخبار (۰۸:۳۰ و ۱۴:۳۰) + بررسی خبرهای فوری"""
     from .news import fetch_all
     if db.get_setting("news_auto_fetch") != "1":
         return
@@ -317,6 +358,10 @@ def news_fetch_only():
             db.log_activity(f"📰 دریافت خودکار: {stats['new']} خبر جدید از منابع خبری.")
     except Exception as e:
         db.log_activity(f"⚠️ دریافت خودکار خبر ناموفق بود: {e}")
+    try:
+        instant_breaking_stories()
+    except Exception as e:
+        db.log_activity(f"⚠️ بررسی خبرهای فوری ناموفق بود: {e}")
 
 
 def daily_insights():
