@@ -34,8 +34,8 @@ def startup():
     db.init_db()
     db.seed_default_tasks()
     db.seed_news_sources()
-    seed_samples()
     seed_real_news()
+    seed_samples()
     scheduler.start()
 
 
@@ -685,7 +685,7 @@ def seed_samples():
     samples = sorted((BASE / "assets" / "samples").glob("*.*")) if (BASE / "assets" / "samples").exists() else []
     now = datetime.now(TEHRAN)
 
-    if not db.get_products():
+    if db.get_setting("page_type") != "news" and not db.get_products():
         sample_products = [
             ("شمع دست‌ساز معطر", "با موم طبیعی و رایحه آرامش‌بخش؛ انتخابی خاص برای خانه شما", "185000", "🕯️"),
             ("لیوان سرامیکی دست‌ساز", "لعاب مات، مقاوم به حرارت و مناسب ماشین ظرفشویی", "240000", "☕"),
@@ -698,13 +698,22 @@ def seed_samples():
 
     # دو پست و یک استوری نمونه در آینده
     if not db.get_posts():
+        # در حالت خبری، محتوای نمونه از اخبار واقعی ساخته می‌شود
+        if db.get_setting("page_type") == "news":
+            try:
+                made = scheduler.generate_news_content(fetch_first=False)
+                if made:
+                    db.log_activity("🎉 محتوای نمونه خبری ساخته شد: پست + استوری از اخبار واقعی امروز.")
+                    return
+            except Exception as e:
+                db.log_activity(f"⚠️ ساخت نمونه خبری ناموفق بود: {e}")
         products = db.get_products()
         p1 = products[0] if products else None
         tomorrow = (now + timedelta(days=1)).replace(hour=20, minute=0, second=0, microsecond=0)
         story_time = (now + timedelta(days=1)).replace(hour=12, minute=0, second=0, microsecond=0)
         from core.content import generate_caption as _gc
         if p1:
-            cap, tags = _gc("post", "intro", shop="فروشگاه من", product=p1["name"],
+            cap, tags = _gc("post", "intro", shop=shop_dict()["name"], product=p1["name"],
                             desc=p1["description"], price=p1["price"])
             path = str(db.GEN_DIR / f"post_demo1.jpg")
             PostRenderer(shop_dict()).render(kind="post", template="intro", product=p1,
@@ -715,7 +724,7 @@ def seed_samples():
                         scheduled_at=tomorrow.isoformat(timespec="seconds"), status="scheduled")
         p2 = products[1] if len(products) > 1 else None
         if p2:
-            cap, tags = _gc("story", shop="فروشگاه من", product=p2["name"], desc=p2["description"], price=p2["price"])
+            cap, tags = _gc("story", shop=shop_dict()["name"], product=p2["name"], desc=p2["description"], price=p2["price"])
             path = str(db.GEN_DIR / f"story_demo1.jpg")
             PostRenderer(shop_dict()).render(kind="story", template="product", product=p2,
                                              title=p2["name"], text=p2["description"],

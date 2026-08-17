@@ -130,8 +130,6 @@ def username_ideas():
             variants = [handle]
             if not stem.endswith(("news", "24")):
                 variants.append(f"{stem}24")
-            if not stem.startswith("akhbar"):
-                variants.append(f"akhbar.{stem}")
             variants.append(f"{stem}_ir")
             if not handle.endswith(".news"):
                 variants.append(f"{stem}.news")
@@ -151,10 +149,11 @@ def build_bio():
         lines = [
             "📰 " + (shop["name"] or "اخبار روز"),
             "🔴 اخبار فوری و مهم ایران و جهان",
-            "⏱ پوشش لحظه‌ای رویدادها",
         ]
-        if shop["tagline"] and shop["tagline"] not in lines:
+        if shop["tagline"]:
             lines.append(shop["tagline"])
+        else:
+            lines.append("⏱ پوشش لحظه‌ای رویدادها")
         if shop["phone"]:
             lines.append("📩 ارتباط/تبادل: " + shop["phone"])
         lines.append("برای خبررسانی سریع، دنبالمان کنید ⬇️")
