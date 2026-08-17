@@ -572,3 +572,155 @@ class NewsRenderer:
                 self._stat_card(d, x, y, x + w_, y + 152, s, accent, card_fill)
                 x += w_ + 24
         self._draw_source(d, W, H, is_story, source, y)
+
+
+class AIKnowledgeRenderer:
+    """رندر تصویر محتوای هوش مصنوعی — پست (1080x1080) و استوری (1080x1920)
+    قالب‌ها: fact | tool | prompt | comparison | question"""
+
+    ICONS = {"fact": "bulb", "tool": "gift", "prompt": "chat", "comparison": "percent", "question": "chat"}
+    LABELS = {"fact": "دانستنی هوش مصنوعی", "tool": "معرفی ابزار", "prompt": "پرامپت روز",
+              "comparison": "مقایسه ابزارها", "question": "سوال امروز"}
+
+    def __init__(self, shop):
+        self.shop = shop
+        self.handle = shop.get("handle", "")
+        self.name = shop.get("name", "هوشینو")
+        self.c1 = hex_rgb(shop.get("color1", "#6D28D9"))
+        self.c2 = hex_rgb(shop.get("color2", "#312E81"))
+        self.accent = hex_rgb(shop.get("accent", "#C4B5FD"))
+
+    def _bg(self, W, H):
+        img = gradient_bg((W, H), self.c1, self.c2)
+        img = draw_decor(img, self.c1, self.c2, seed=random.randint(1, 9999))
+        return img
+
+    def _header(self, d, W, H, is_story, template, scale=1.0):
+        top = 250 * scale if is_story else 84 * scale
+        icon = self.ICONS.get(template, "bulb")
+        draw_icon(d, icon, W / 2, top + 70 * scale, 110 * scale, self.accent)
+        lf = font("bold", 40 * scale if is_story else 36 * scale)
+        return draw_pill(d, W / 2, top + 190 * scale if is_story else top + 150 * scale,
+                         self.LABELS.get(template, ""), lf, (255, 255, 255), self.accent,
+                         pad_x=36, pad_y=14)[3]
+
+    def _footer(self, d, W, H, is_story, scale=1.0):
+        if self.handle:
+            hf = font("medium", 28 * scale)
+            if is_story:
+                draw_center(d, W / 2, 1620 * scale, self.handle, hf, (255, 255, 255, 200))
+            else:
+                draw_center(d, W / 2, H - 60 * scale, self.handle, hf, (255, 255, 255, 200))
+        lf2 = font("bold", 26 * scale)
+        draw_center(d, W / 2, H - 116 * scale if is_story else H - 104 * scale,
+                    "🤖 " + self.name, lf2, (255, 255, 255, 170))
+
+    def _card(self, d, x0, y0, x1, y1):
+        d.rounded_rectangle([x0, y0, x1, y1], radius=30, fill=(250, 250, 254))
+
+    # ---------- قالب‌ها ----------
+    def render(self, kind="post", template="fact", title="", text="", extra="",
+               price="", use="", out_path=None):
+        W, H = (1080, 1080) if kind == "post" else (1080, 1920)
+        is_story = kind == "story"
+        scale = 1.0
+        img = self._bg(W, H)
+        d = ImageDraw.Draw(img)
+        y_end = self._header(d, W, H, is_story, template, scale)
+        margin = 84
+        card_x, card_w = margin, W - 2 * margin
+        dark = (30, 27, 48)
+        muted = (105, 103, 125)
+
+        if template == "fact":
+            card_y = y_end + (56 if is_story else 40)
+            card_h = (1180 if is_story else 600) - 0
+            card_h = min(card_h, (H - 320 if is_story else H - 330) - card_y)
+            self._card(d, card_x, card_y, card_x + card_w, card_y + card_h)
+            y = card_y + (70 if is_story else 46)
+            tf = fit_font(d, title, card_w - 120, 58 if is_story else 48, 32, "black")
+            for ln in wrap_lines(d, shaped(title), tf, card_w - 120)[:4]:
+                bbox = draw_center(d, W / 2, y, ln, tf, dark)
+                y = bbox[3] + int(tf.size * 0.4)
+            y += 34 if is_story else 26
+            sf = font("regular", 34 if is_story else 30)
+            for ln in wrap_lines(d, shaped(text), sf, card_w - 130)[:7 if is_story else 4]:
+                bbox = draw_center(d, W / 2, y, ln, sf, muted)
+                y = bbox[3] + int(sf.size * 0.52)
+
+        elif template == "tool":
+            card_y = y_end + (56 if is_story else 40)
+            card_h = min(1200 if is_story else 620, (H - 320 if is_story else H - 330) - card_y)
+            self._card(d, card_x, card_y, card_x + card_w, card_y + card_h)
+            y = card_y + (66 if is_story else 44)
+            tf = fit_font(d, title, card_w - 120, 74 if is_story else 60, 36, "black")
+            y = draw_center(d, W / 2, y, title, tf, dark)[3] + 30
+            if text:
+                sf = font("regular", 34 if is_story else 30)
+                for ln in wrap_lines(d, shaped(text), sf, card_w - 130)[:4 if is_story else 3]:
+                    y = draw_center(d, W / 2, y, ln, sf, muted)[3] + int(sf.size * 0.5)
+            y += 28
+            if price:
+                pf = font("bold", 34 if is_story else 30)
+                y = draw_pill(d, W / 2, y, "💳 " + price, pf, (255, 255, 255), self.c1,
+                              pad_x=36, pad_y=14)[3] + 26
+            if use:
+                uf = font("medium", 34 if is_story else 30)
+                for ln in wrap_lines(d, shaped("🎯 " + use), uf, card_w - 130)[:3 if is_story else 2]:
+                    y = draw_center(d, W / 2, y, ln, uf, dark)[3] + int(uf.size * 0.5)
+
+        elif template == "prompt":
+            card_y = y_end + (56 if is_story else 40)
+            card_h = min(1200 if is_story else 640, (H - 320 if is_story else H - 330) - card_y)
+            # جعبه کدمانند برای پرامپت
+            d.rounded_rectangle([card_x, card_y, card_x + card_w, card_y + card_h],
+                                radius=30, fill=(24, 22, 46))
+            y = card_y + (66 if is_story else 44)
+            tf = fit_font(d, title, card_w - 120, 50 if is_story else 44, 30, "black")
+            y = draw_center(d, W / 2, y, title, tf, (255, 255, 255))[3] + 34
+            pf = font("regular", 30 if is_story else 27)
+            for ln in wrap_lines(d, shaped(text), pf, card_w - 130)[:8 if is_story else 6]:
+                y = draw_center(d, W / 2, y, ln, pf, (205, 200, 235))[3] + int(pf.size * 0.5)
+
+        elif template == "comparison":
+            card_y = y_end + (56 if is_story else 40)
+            card_h = min(1040 if is_story else 560, (H - 320 if is_story else H - 330) - card_y)
+            a, b = (extra.split("|") if extra and "|" in extra else (title or "ابزار A", text or "ابزار B"))
+            half_gap = 16
+            half_w = (card_w - half_gap) / 2
+            # کارت A
+            self._card(d, card_x, card_y, card_x + half_w, card_y + card_h)
+            af = fit_font(d, a, half_w - 60, 46 if is_story else 40, 26, "black")
+            draw_center(d, card_x + half_w / 2, card_y + (60 if is_story else 40), a, af, self.c1)
+            draw_center(d, card_x + half_w / 2, card_y + (60 if is_story else 40) + af.size + 26,
+                        "VS", font("black", 40 if is_story else 34), (255, 255, 255))
+            # کارت B
+            self._card(d, card_x + half_w + half_gap, card_y,
+                       card_x + half_w + half_gap + half_w, card_y + card_h)
+            bf = fit_font(d, b, half_w - 60, 46 if is_story else 40, 26, "black")
+            draw_center(d, card_x + half_w + half_gap + half_w / 2, card_y + (60 if is_story else 40),
+                        b, bf, self.c2)
+            # نتیجه
+            if use:
+                vf = font("regular", 28 if is_story else 25)
+                yv = card_y + card_h - (100 if is_story else 76)
+                for ln in wrap_lines(d, shaped("💡 " + use), vf, card_w - 90)[:3 if is_story else 2]:
+                    yv = draw_center(d, W / 2, yv, ln, vf, dark)[3] + int(vf.size * 0.5)
+
+        elif template == "question":
+            card_y = y_end + (70 if is_story else 50)
+            card_h = min(900 if is_story else 480, (H - 320 if is_story else H - 330) - card_y)
+            self._card(d, card_x, card_y, card_x + card_w, card_y + card_h)
+            qf = fit_font(d, extra or text or title, card_w - 120, 62 if is_story else 50, 32, "bold")
+            y = card_y + (90 if is_story else 60)
+            for ln in wrap_lines(d, shaped(extra or text or title), qf, card_w - 120)[:5 if is_story else 4]:
+                y = draw_center(d, W / 2, y, ln, qf, dark)[3] + int(qf.size * 0.5)
+            y += 40
+            draw_pill(d, W / 2, y, "نظرت را کامنت کن 👇", font("bold", 34 if is_story else 30),
+                      (255, 255, 255), self.c1, pad_x=44, pad_y=16)
+
+        self._footer(d, W, H, is_story, scale)
+        if out_path:
+            Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+            img.save(out_path, "JPEG", quality=92)
+        return img

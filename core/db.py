@@ -392,6 +392,10 @@ DEFAULT_NEWS_SOURCES = [
     ("گوگل‌نیوز — اخبار جهان", "https://news.google.com/rss/headlines/section/topic/WORLD?hl=fa&gl=IR&ceid=IR:fa", "جهان"),
     ("فرانس۲۴ فارسی", "https://www.france24.com/fa/rss", "جهان"),
     ("خبرآنلاین", "https://www.khabaronline.ir/rss", "ایران"),
+    ("تک‌کرانچ — هوش مصنوعی", "https://techcrunch.com/category/artificial-intelligence/feed/", "هوش مصنوعی"),
+    ("ونچربیت — هوش مصنوعی", "https://venturebeat.com/category/ai/feed/", "هوش مصنوعی"),
+    ("ام‌آی‌تی تکنولوژی ریویو — AI", "https://www.technologyreview.com/topic/artificial-intelligence/feed", "هوش مصنوعی"),
+    ("گوگل‌نیوز — هوش مصنوعی", "https://news.google.com/rss/search?q=هوش+مصنوعی&hl=fa&gl=IR&ceid=IR:fa", "هوش مصنوعی"),
 ]
 
 

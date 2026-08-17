@@ -99,7 +99,43 @@
     <!-- ساخت پست -->
     <section id="view-create-post" class="view">
       <h1>ساخت پست جدید</h1>
-      <div class="two-col">
+
+      <!-- فرم مخصوص پیج هوش مصنوعی -->
+      <div class="two-col" id="ai-post-form" style="display:none">
+        <div class="panel">
+          <label>قالب محتوا
+            <select id="ai-post-tpl" onchange="aiTplChanged('post')">
+              <option value="fact">🧠 دانستنی</option>
+              <option value="tool">🛠️ معرفی ابزار</option>
+              <option value="prompt">✨ پرامپت روز</option>
+              <option value="comparison">⚔️ مقایسه ابزارها</option>
+              <option value="question">❓ سوال از مخاطب</option>
+            </select>
+          </label>
+          <label>عنوان <input id="ai-post-title" placeholder="مثلاً: ChatGPT یا نام ابزار"></label>
+          <label>متن اصلی
+            <textarea id="ai-post-text" rows="4" placeholder="متن دانستنی / توضیح ابزار / متن پرامپت / سوال"></textarea>
+          </label>
+          <div class="form-grid" id="ai-post-extra" style="display:none">
+            <label>ابزار اول <input id="ai-post-a" placeholder="ChatGPT"></label>
+            <label>ابزار دوم <input id="ai-post-b" placeholder="Gemini"></label>
+            <label>جمع‌بندی <input id="ai-post-verdict" placeholder="کدام برای چه کاری بهتر است؟"></label>
+          </div>
+          <div class="form-grid" id="ai-post-tool-extra" style="display:none">
+            <label>هزینه <input id="ai-post-price" placeholder="رایگان + پلن پولی"></label>
+            <label>بهترین کاربرد <input id="ai-post-use" placeholder="طراحی لوگو و تصویر پست"></label>
+          </div>
+          <label>زمان انتشار (خالی = پیش‌نویس) <input type="datetime-local" id="ai-post-schedule"></label>
+          <div class="btn-row">
+            <button class="btn primary" onclick="aiGenerate('post')">🎨 ساخت پست هوش مصنوعی</button>
+          </div>
+        </div>
+        <div class="panel center" id="ai-post-preview">
+          <div class="preview-empty">پیش‌نمایش پست اینجا نمایش داده می‌شود</div>
+        </div>
+      </div>
+
+      <div class="two-col" id="shop-post-form">
         <div class="panel">
           <div class="form-grid">
             <label>محصول (اختیاری)
@@ -147,7 +183,37 @@
     <!-- ساخت استوری -->
     <section id="view-create-story" class="view">
       <h1>ساخت استوری جدید</h1>
-      <div class="two-col">
+
+      <!-- فرم مخصوص پیج هوش مصنوعی -->
+      <div class="two-col" id="ai-story-form" style="display:none">
+        <div class="panel">
+          <label>قالب محتوا
+            <select id="ai-story-tpl" onchange="aiTplChanged('story')">
+              <option value="fact">🧠 دانستنی</option>
+              <option value="tool">🛠️ معرفی ابزار</option>
+              <option value="prompt">✨ پرامپت روز</option>
+              <option value="question">❓ سوال از مخاطب</option>
+            </select>
+          </label>
+          <label>عنوان <input id="ai-story-title" placeholder="مثلاً: ChatGPT یا نام ابزار"></label>
+          <label>متن اصلی
+            <textarea id="ai-story-text" rows="4" placeholder="متن دانستنی / توضیح ابزار / متن پرامپت / سوال"></textarea>
+          </label>
+          <div class="form-grid" id="ai-story-tool-extra" style="display:none">
+            <label>هزینه <input id="ai-story-price" placeholder="رایگان + پلن پولی"></label>
+            <label>بهترین کاربرد <input id="ai-story-use" placeholder="طراحی لوگو و تصویر پست"></label>
+          </div>
+          <label>زمان انتشار (خالی = پیش‌نویس) <input type="datetime-local" id="ai-story-schedule"></label>
+          <div class="btn-row">
+            <button class="btn primary" onclick="aiGenerate('story')">🎨 ساخت استوری هوش مصنوعی</button>
+          </div>
+        </div>
+        <div class="panel center" id="ai-story-preview">
+          <div class="preview-empty">پیش‌نمایش استوری اینجا نمایش داده می‌شود</div>
+        </div>
+      </div>
+
+      <div class="two-col" id="shop-story-form">
         <div class="panel">
           <div class="form-grid">
             <label>محصول (اختیاری)
@@ -334,6 +400,7 @@
               <select id="set-pagetype">
                 <option value="shop">🏪 فروشگاهی / کسب‌وکار</option>
                 <option value="news">📰 خبری</option>
+                <option value="ai">🤖 هوش مصنوعی</option>
               </select>
             </label>
           </div>

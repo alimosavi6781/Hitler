@@ -187,6 +187,10 @@ def daily_generate():
         generate_news_content(date)
         return
 
+    if settings.get("page_type") == "ai":
+        generate_ai_content(date)
+        return
+
     if settings.get("auto_publish_stories") == "1":
         for time_str, slot in (("story_time", "اول"), ("story_time_2", "دوم")):
             t = settings.get(time_str) or ("12:00" if slot == "اول" else "21:00")
@@ -308,15 +312,153 @@ def generate_news_content(date=None, fetch_first=True):
     return made
 
 
+def _create_ai_post(data, tpl, iso, status="ai_draft"):
+    """ساخت پست دانش هوش مصنوعی"""
+    from .ai_content import caption_for
+    from .images import AIKnowledgeRenderer
+    shop = _shop_dict()
+    uid = datetime.now().strftime("%Y%m%d%H%M%S")
+    path = render_path("post", f"ai{uid}")
+    title, text, extra, price, use = "", "", "", "", ""
+    if tpl == "fact":
+        title, text = data
+    elif tpl == "tool":
+        title, _e, text, price, use = data
+    elif tpl == "prompt":
+        title, text = data
+    elif tpl == "comparison":
+        a, b, a_d, b_d, verdict = data
+        title, text, extra, use = a, b, f"{a}|{b}", f"{a_d} | {b_d} | {verdict}"
+    elif tpl == "question":
+        text = data
+        title = "سوال امروز"
+    AIKnowledgeRenderer(shop).render(
+        kind="post", template=tpl, title=title, text=text, extra=extra,
+        price=price, use=use, out_path=path)
+    caption, tags = caption_for(tpl, data, shop["name"])
+    return db.add_post(
+        "post", title=(title or self_title(tpl))[:90], caption=caption, hashtags=tags,
+        image_path=path, template=f"ai_{tpl}",
+        scheduled_at=iso, status=status)
+
+
+def self_title(tpl):
+    return {"fact": "دانستنی هوش مصنوعی", "tool": "معرفی ابزار",
+            "prompt": "پرامپت روز", "comparison": "مقایسه ابزارها",
+            "question": "سوال امروز"}.get(tpl, "هوش مصنوعی")
+
+
+def _create_ai_story(data, tpl, iso):
+    """ساخت استوری دانش هوش مصنوعی"""
+    from .ai_content import caption_for
+    from .images import AIKnowledgeRenderer
+    shop = _shop_dict()
+    uid = datetime.now().strftime("%Y%m%d%H%M%S")
+    path = render_path("story", f"ai{uid}")
+    title, text, extra, price, use = "", "", "", "", ""
+    if tpl == "fact":
+        title, text = data
+    elif tpl == "tool":
+        title, _e, text, price, use = data
+    elif tpl == "prompt":
+        title, text = data
+    elif tpl == "question":
+        text = data
+        title = "سوال امروز"
+    AIKnowledgeRenderer(shop).render(
+        kind="story", template=tpl, title=title, text=text, extra=extra,
+        price=price, use=use, out_path=path)
+    caption, tags = caption_for(tpl, data, shop["name"])
+    return db.add_post(
+        "story", title=(title or self_title(tpl))[:90], caption=caption, hashtags=tags,
+        image_path=path, template=f"ai_{tpl}",
+        scheduled_at=iso, status="scheduled")
+
+
+def generate_ai_content(date=None, fetch_first=True):
+    """ساخت محتوای روزانه پیج هوش مصنوعی: ۱ پست دانش + ۱ استوری دانش + ۱ استوری خبر AI"""
+    from .ai_content import (comparison_item, fact_item, prompt_item,
+                             question_item, tool_item)
+    from .news import fetch_all
+    date = date or now_tehran().strftime("%Y-%m-%d")
+    settings = db.all_settings()
+    made = 0
+
+    if fetch_first:
+        try:
+            stats = fetch_all()
+            if stats["new"]:
+                db.log_activity(f"📰 {stats['new']} خبر هوش مصنوعی از منابع دریافت شد.")
+        except Exception as e:
+            db.log_activity(f"⚠️ دریافت خبر هوش مصنوعی ناموفق بود: {e}")
+
+    # تنوع: از آخرین قالب استفاده‌شده عبور کن
+    last = settings.get("ai_last_tpl", "")
+    pool = ["fact", "tool", "prompt", "comparison"]
+    if last in pool:
+        pool.remove(last)
+    tpl = random.choice(pool)
+
+    t_post = settings.get("post_time") or "20:00"
+    iso_post = f"{date}T{t_post}:00+03:30"
+    if settings.get("auto_generate_posts") == "1":
+        exists = [p for p in db.get_posts(status=["ai_draft", "scheduled", "published"])
+                  if p["kind"] == "post" and p["template"].startswith("ai_")
+                  and (p.get("scheduled_at") or "").startswith(iso_post[:16])]
+        if not exists:
+            item = {"fact": fact_item, "tool": tool_item,
+                    "prompt": prompt_item, "comparison": comparison_item}[tpl]()
+            _create_ai_post(item, tpl, iso_post)
+            db.set_setting("ai_last_tpl", tpl)
+            db.log_activity(f"🤖 پست «{self_title(tpl)}» ساخته شد و منتظر تأیید توست (انتشار {t_post}).")
+            made += 1
+
+    if settings.get("auto_publish_stories") == "1":
+        # استوری اول: محتوای دانش
+        t1 = settings.get("story_time") or "12:00"
+        iso1 = f"{date}T{t1}:00+03:30"
+        exists1 = [p for p in db.get_posts(status=["scheduled", "ai_draft", "published"])
+                   if p["kind"] == "story" and p["template"].startswith("ai_")
+                   and (p.get("scheduled_at") or "").startswith(iso1[:16])]
+        if not exists1:
+            story_pool = ["fact", "prompt", "question", "tool"]
+            if tpl in story_pool:
+                story_pool.remove(tpl)
+            st = random.choice(story_pool)
+            sitem = {"fact": fact_item, "prompt": prompt_item,
+                     "question": question_item, "tool": tool_item}[st]()
+            _create_ai_story(sitem, st, iso1)
+            db.log_activity(f"📱 استوری «{self_title(st)}» زمان‌بندی شد ({t1}).")
+            made += 1
+
+        # استوری دوم: آخرین خبر هوش مصنوعی
+        t2 = settings.get("story_time_2") or "21:00"
+        iso2 = f"{date}T{t2}:00+03:30"
+        exists2 = [p for p in db.get_posts(status=["scheduled", "ai_draft", "published"])
+                   if p["kind"] == "story" and p["template"] == "news"
+                   and (p.get("scheduled_at") or "").startswith(iso2[:16])]
+        if not exists2:
+            ai_news = [n for n in db.get_news(60, unused_only=True) if n["category"] == "هوش مصنوعی"]
+            if ai_news:
+                _create_news_story(ai_news[0], iso2)
+                db.mark_news_used(ai_news[0]["id"])
+                db.log_activity(f"📱 استوری خبر هوش مصنوعی زمان‌بندی شد ({t2}).")
+                made += 1
+    return made
+
+
 def instant_breaking_stories():
     """⚡ به محض رسیدن خبر فوری، بلافاصله استوری فوری بساز (انتشار ۱۰ دقیقه بعد)"""
     from .news import is_breaking
     if db.get_setting("news_breaking_instant") != "1":
         return 0
-    if db.get_setting("page_type") != "news":
+    page_type = db.get_setting("page_type")
+    if page_type not in ("news", "ai"):
         return 0
     made = 0
     for item in db.get_news(limit=60, unused_only=True):
+        if page_type == "ai" and item.get("category") != "هوش مصنوعی":
+            continue
         if not is_breaking(item["headline"] + " " + (item.get("summary") or "")):
             continue
         # فقط خبرهای تازه (کمتر از ۲۴ ساعت)

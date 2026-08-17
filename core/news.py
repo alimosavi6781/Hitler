@@ -14,6 +14,11 @@ from . import db
 TEHRAN = ZoneInfo("Asia/Tehran")
 
 CATEGORY_KEYWORDS = {
+    "هوش مصنوعی": ["هوش مصنوعی", "چت‌جی‌پی‌تی", "chatgpt", "ChatGPT", "GPT", "OpenAI",
+                   "انتروپیک", "Anthropic", "کلود", "Claude", "جمینی", "Gemini", "مدل زبانی",
+                   "مدل‌های زبانی", "ربات", "رباتیک", "یادگیری ماشین", "AI", "جمنای",
+                   "دیتاسنتر", "تراشه هوش مصنوعی", "انویدیا", "Nvidia", "متا",
+                   "مایکروسافت", "الگوریتم", "گوگل دیپ‌مایند", "DeepMind", "مدل هوش مصنوعی"],
     "سیاسی": ["سیاست", "دولت", "مجلس", "انتخابات", "وزیر", "رئیس‌جمهور", "رئیس جمهور",
               "دیپلماسی", "مذاکره", "سفیر", "تحریم", "جنگ", "حمله", "ارتش", "سپاه",
               "ترامپ", "نتانیاهو", "اسرائیل", "غزه", "آتش‌بس", "آتش بس", "وزارت",
@@ -96,6 +101,7 @@ def template_data(item, template="auto"):
     return template, stats, quotes
 
 CATEGORY_COLORS = {
+    "هوش مصنوعی": ("#6D28D9", "#312E81", "#C4B5FD"),
     "سیاسی": ("#B91C1C", "#7F1D1D", "#FCA5A5"),
     "اقتصادی": ("#B45309", "#78350F", "#FCD34D"),
     "ورزشی": ("#047857", "#064E3B", "#6EE7B7"),
@@ -259,6 +265,73 @@ def news_caption(news, shop_name="", include_link=True):
     if shop_name:
         tags.append("#" + shop_name.strip().replace(" ", "_"))
     return "\n\n".join(parts).strip(), " ".join(dict.fromkeys(tags))
+
+
+def seed_ai_news():
+    """بارگذاری مجموعه خبر واقعی هوش مصنوعی (دریافت‌شده ۱۷ اوت ۲۰۲۶) برای دموی اولیه"""
+    if db.get_setting("seeded_ai_news") == "1":
+        return
+    db.set_setting("seeded_ai_news", "1")
+    items = [
+        ("OpenAI introduces ‘Ultrafast,’ a new mode that makes GPT-5.6 Sol work at 14x the speed",
+         "OpenAI حالت فوق‌سریع جدیدی معرفی کرد که مدل GPT-5.6 Sol را با سرعت ۱۴ برابر اجرا می‌کند؛ جهشی بزرگ برای پاسخ‌گویی لحظه‌ای.",
+         "https://techcrunch.com/2026/08/13/openai-introduces-ultrafast-a-new-mode-that-makes-gpt-5-6-sol-work-at-14x-the-speed/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-13 19:22:40"),
+        ("Nvidia investing $1.5B in SoftBank data center developer behind OpenAI project",
+         "انویدیا ۱.۵ میلیارد دلار در توسعه‌دهنده دیتاسنترهای سافت‌بانک سرمایه‌گذاری می‌کند؛ پروژه‌ای که زیرساخت مدل‌های OpenAI را تأمین می‌کند.",
+         "https://techcrunch.com/2026/08/17/nvidia-investing-1-5b-in-softbank-data-center-developer-behind-openai-project/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-17 15:16:24"),
+        ("Groq raises $350M to fuel its pivot from AI chips to neocloud",
+         "استارتاپ تراشه‌ساز Groq در مسیر چرخش از تراشه‌های AI به سرویس ابری «نئوکلود»، ۳۵۰ میلیون دلار جذب کرد.",
+         "https://techcrunch.com/2026/08/17/groq-raises-350m-to-fuel-its-pivot-from-ai-chips-to-neocloud/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-17 16:15:12"),
+        ("Stripe will reportedly acquire AI gateway startup OpenRouter for $7B+",
+         "گزارش‌ها از خرید استارتاپ OpenRouter توسط استرایپ به ارزش بیش از ۷ میلیارد دلار حکایت دارد؛ دروازه دسترسی یکپارچه به مدل‌های AI.",
+         "https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-16 20:57:04"),
+        ("Anthropic CEO says AI backlash is ‘fundamentally a crisis of trust’",
+         "مدیرعامل Anthropic می‌گوید واکنش منفی به هوش مصنوعی در اصل «بحران اعتماد» است و شفافیت را راه‌حل می‌داند.",
+         "https://techcrunch.com/2026/08/16/anthropic-ceo-says-ai-backlash-is-fundamentally-a-crisis-of-trust/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-16 16:53:51"),
+        ("IBM partners with OpenAI to bolster enterprise AI push",
+         "آی‌بی‌ام برای تقویت حضور هوش مصنوعی سازمانی، با OpenAI شریک می‌شود؛ ترکیب زیرساخت سازمانی با مدل‌های پیشرو.",
+         "https://techcrunch.com/2026/08/13/ibm-partners-with-openai-to-bolster-enterprise-ai-push/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-13 19:19:49"),
+        ("Databricks wanted to raise $1B, investors wanted $15B. It settled on $5B at a $190B valuation.",
+         "دیتابرکس در دور جدید سرمایه‌گذاری، با ارزش‌گذاری ۱۹۰ میلیارد دلاری، ۵ میلیارد دلار جذب کرد؛ نشانه‌ای از اشتهای عظیم بازار برای زیرساخت داده و AI.",
+         "https://techcrunch.com/2026/08/13/databricks-wanted-to-raise-1b-investors-wanted-15b-it-settled-on-5b-at-a-190b-valuation/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-13 20:14:39"),
+        ("Amazon, which started off selling books, is destroying rare texts to train AI",
+         "آمازون که روزی فروشنده کتاب بود، حالا برای آموزش مدل‌های هوش مصنوعی کتاب‌های نایاب را نابود می‌کند؛ گزارش جنجالی درباره هزینه پنهان آموزش مدل‌ها.",
+         "https://techcrunch.com/2026/08/17/amazon-once-an-online-bookseller-is-destroying-rare-books-to-train-ai-models/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-17 16:38:44"),
+        ("Google will now allow users to remove visible watermark from its AI generations",
+         "گوگل اعلام کرد کاربران می‌توانند واترمارک قابل‌مشاهده تصاویر تولیدشده با هوش مصنوعی این شرکت را حذف کنند؛ تصمیمی بحث‌برانگیز درباره شفافیت محتوا.",
+         "https://techcrunch.com/2026/08/14/google-will-now-allow-users-to-remove-visible-watermark-from-its-ai-generations/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-14 16:13:40"),
+        ("SpaceX officially closes its Cursor acquisition",
+         "اسپیس‌ایکس رسماً خرید استارتاپ Cursor را نهایی کرد؛ ادغامی غیرمنتظره میان صنعت فضایی و ابزارهای برنامه‌نویسی با هوش مصنوعی.",
+         "https://techcrunch.com/2026/08/15/spacex-officially-closes-its-cursor-acquisition/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-15 16:30:00"),
+        ("Wispr raises $280M at $2B valuation as it looks beyond dictation",
+         "استارتاپ Wispr با ارزش‌گذاری ۲ میلیارد دلاری، ۲۸۰ میلیون دلار جذب کرد تا از تشخیص گفتار فراتر برود؛ نسل جدید رابط مغز و ماشین.",
+         "https://techcrunch.com/2026/08/17/wispr-raises-280m-at-2b-valuation-as-it-looks-beyond-dictation/",
+         "تک‌کرانچ", "هوش مصنوعی", "2026-08-17 13:10:05"),
+        ("Iran joins founding members of global AI organization",
+         "ایران به جمع اعضای مؤسس یک سازمان جهانی هوش مصنوعی پیوست؛ حضوری تازه در حکمرانی بین‌المللی AI.",
+         "https://news.google.com/rss/articles/CBMiigFBVV95cUxORnFVYURoMXozUWwzNGJJSWswWkViX05qem5icDhqSWRKLWRQbDRVSHBrN051Q0FoN1BxbUxjY0RONjhjenZXYTcwOHBVYjdGU3VVMzR2X190QldER2FoWUl6eTk0Y3BFMlFsdkpZRWxoZkJXb0N4TU1yemJfVzdPRGpkMm0",
+         "گوگل‌نیوز", "هوش مصنوعی", "2026-08-15 11:38:35"),
+    ]
+    added = 0
+    for headline, summary, link, source, cat, pub in items:
+        nid = db.add_news(headline, summary, link, source, cat,
+                          published_at=pub,
+                          hash_key=hashlib.md5(headline.encode("utf-8")).hexdigest())
+        if nid:
+            added += 1
+    if added:
+        db.log_activity(f"🤖 {added} خبر واقعی هوش مصنوعی بارگذاری شد — در تب «اخبار» ببین.")
+    return added
 
 
 def seed_real_news():

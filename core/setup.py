@@ -53,7 +53,50 @@ NEWS_USERNAMES = [
     "news.fa24", "akhbar.fouri24", "titr.aval",
 ]
 
+AI_NAMES = [
+    "هوشینو",
+    "هوش مصنوعی به زبان ساده",
+    "ای‌آی فارسی",
+    "ذهن دیجیتال",
+    "دنیای هوش مصنوعی",
+    "AI روز",
+    "مغز مصنوعی",
+    "هوش نو",
+    "ربات‌ها و ما",
+    "ژرفای هوش",
+]
+
+AI_USERNAMES = [
+    "hooshino", "ai.farsi", "zehn.digital", "donya.ai", "ai.rooz",
+    "maghz.masnoei", "hoosh.no", "robot.ha", "zharf.ai",
+]
+
+AI_HIGHLIGHTS = [
+    ("ابزارها", "#6D28D9", "#312E81", "gift"),
+    ("پرامپت", "#1D4ED8", "#312E81", "chat"),
+    ("نکته‌ها", "#047857", "#064E3B", "bulb"),
+    ("اخبار AI", "#B91C1C", "#450A0A", "star"),
+    ("مقایسه", "#B45309", "#78350F", "percent"),
+    ("آینده", "#BE185D", "#701A75", "heart"),
+]
+
 SETUP_STEPS = {
+    "ai": [
+        ("📱 ساخت اکانت اینستاگرام",
+         "در اپلیکیشن اینستاگرام با شماره تلفن یا ایمیل ثبت‌نام کن و یوزرنیم پیشنهادی را انتخاب کن."),
+        ("🎨 تکمیل پروفایل",
+         "عکس پروفایل و بیوی آماده را از همین صفحه دانلود کن و در پروفایل بگذار."),
+        ("💼 تبدیل به حساب حرفه‌ای",
+         "تنظیمات ← نوع حساب ← حرفه‌ای ← دسته «علم و فناوری / آموزش». "
+         "این کار برای آنالیز و انتشار خودکار لازم است."),
+        ("🔗 اتصال به فیسبوک‌پیج (برای انتشار خودکار)",
+         "در تب «تنظیمات ← اتصال اینستاگرام» راهنمای API متا را دنبال کن."),
+        ("🤖 انتشار اولین محتواها",
+         "از تب «تقویم انتشار»، پست‌های «دانستنی» و «معرفی ابزار» را با «⬇️ بسته» دانلود و منتشر کن. "
+         "۳ پست اول، هویت پیج را می‌سازند."),
+        ("📈 ادامه خودکار",
+         "تولید خودکار روزانه و «استوری خبر AI» را روشن نگه دار؛ بعد از ۲ هفته تب آنالیز روند رشد را نشان می‌دهد."),
+    ],
     "news": [
         ("📱 ساخت اکانت اینستاگرام",
          "در اپلیکیشن اینستاگرام (اندروید/iOS) با شماره تلفن یا ایمیل ثبت‌نام کن. "
@@ -112,6 +155,10 @@ def name_ideas():
         ideas = NEWS_NAMES[:]
         if shop["name"] and shop["name"] != "فروشگاه من":
             ideas.insert(0, shop["name"])
+    elif shop["page_type"] == "ai":
+        ideas = AI_NAMES[:]
+        if shop["name"] and shop["name"] != "فروشگاه من":
+            ideas.insert(0, shop["name"])
     else:
         ideas = [shop["name"] or "فروشگاه من"]
         if shop["tagline"]:
@@ -133,6 +180,13 @@ def username_ideas():
             variants.append(f"{stem}_ir")
             if not handle.endswith(".news"):
                 variants.append(f"{stem}.news")
+            pool = variants + pool
+    elif shop["page_type"] == "ai":
+        pool = AI_USERNAMES[:]
+        if stem:
+            variants = [handle]
+            if stem != "ai" and not stem.startswith("ai."):
+                variants.append(f"ai.{stem}")
             pool = variants + pool
     else:
         pool = [f"{stem}.shop", f"{stem}.ir", f"{stem}_store", f"shop.{stem}"] if stem else []
@@ -157,6 +211,17 @@ def build_bio():
         if shop["phone"]:
             lines.append("📩 ارتباط/تبادل: " + shop["phone"])
         lines.append("برای خبررسانی سریع، دنبالمان کنید ⬇️")
+        return "\n".join(lines)
+    if shop["page_type"] == "ai":
+        lines = [
+            "🤖 " + (shop["name"] or "هوشینو"),
+            "هوش مصنوعی به زبان ساده",
+            "🧠 دانستنی، ابزار و پرامپت روز",
+            "📰 تازه‌ترین خبرهای هوش مصنوعی دنیا",
+        ]
+        if shop["tagline"] and shop["tagline"] not in lines:
+            lines.append(shop["tagline"])
+        lines.append("هر روز یک قدم هوشمندتر ⬇️")
         return "\n".join(lines)
     lines = ["🛍️ " + (shop["name"] or "فروشگاه من")]
     if shop["tagline"]:
@@ -223,7 +288,8 @@ def ensure_brand_assets():
 
     # کاور هایلایت
     made = []
-    for label, c1, c2, icon in HIGHLIGHTS:
+    highlights = AI_HIGHLIGHTS if shop["page_type"] == "ai" else HIGHLIGHTS
+    for label, c1, c2, icon in highlights:
         _make_highlight(label, c1, c2, icon)
         made.append({"label": label, "url": f"/generated/brand/hl_{label}.jpg"})
     return made

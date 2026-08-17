@@ -15,8 +15,8 @@ from core import db, scheduler
 from core.analytics import fetch_and_store, recommendations, weekly_report_text
 from core.content import caption_ideas, generate_caption
 from core.ig_api import IGClient, IGError
-from core.images import NewsRenderer, PostRenderer
-from core.news import is_breaking, news_caption, seed_real_news
+from core.images import AIKnowledgeRenderer, NewsRenderer, PostRenderer
+from core.news import is_breaking, news_caption, seed_ai_news, seed_real_news
 from core.setup import setup_payload
 
 TEHRAN = ZoneInfo("Asia/Tehran")
@@ -35,6 +35,7 @@ def startup():
     db.seed_default_tasks()
     db.seed_news_sources()
     seed_real_news()
+    seed_ai_news()
     seed_samples()
     scheduler.start()
 
@@ -524,6 +525,78 @@ def news_delete_source(sid: int):
     return {"ok": True}
 
 
+# ---------------- محتوای هوش مصنوعی ----------------
+@app.get("/api/ai/items")
+def ai_items():
+    from core.ai_content import (AI_COMPARISONS, AI_FACTS, AI_PROMPTS,
+                                 AI_QUESTIONS, AI_TOOLS)
+    return {
+        "facts": [{"title": f[0], "text": f[1]} for f in AI_FACTS[:6]],
+        "tools": [{"name": t[0], "emoji": t[1], "desc": t[2], "price": t[3], "use": t[4]}
+                  for t in AI_TOOLS[:6]],
+        "prompts": [{"title": p[0], "text": p[1]} for p in AI_PROMPTS[:6]],
+        "comparisons": [{"a": c[0], "b": c[1], "a_desc": c[2], "b_desc": c[3], "verdict": c[4]}
+                        for c in AI_COMPARISONS],
+        "questions": AI_QUESTIONS,
+    }
+
+
+@app.post("/api/ai/generate")
+def ai_generate(payload: dict):
+    """ساخت دستی پست/استوری دانش هوش مصنوعی"""
+    from core.ai_content import caption_for
+    kind = payload.get("kind", "post")
+    tpl = payload.get("template", "fact")
+    if tpl not in ("fact", "tool", "prompt", "comparison", "question"):
+        raise HTTPException(400, "قالب نامعتبر است")
+    shop = shop_dict()
+
+    if tpl == "fact":
+        data = (payload.get("title") or "دانستنی هوش مصنوعی", payload.get("text") or "")
+    elif tpl == "tool":
+        data = (payload.get("title") or "ابزار", payload.get("emoji") or "🛠️",
+                payload.get("text") or "", payload.get("price") or "",
+                payload.get("use") or "")
+    elif tpl == "prompt":
+        data = (payload.get("title") or "پرامپت روز", payload.get("text") or "")
+    elif tpl == "comparison":
+        data = (payload.get("a") or "ابزار A", payload.get("b") or "ابزار B",
+                payload.get("a_desc") or "", payload.get("b_desc") or "",
+                payload.get("verdict") or "")
+    else:
+        data = payload.get("text") or payload.get("title") or "سوال امروز"
+
+    uid = datetime.now().strftime("%Y%m%d%H%M%S")
+    path = str(db.GEN_DIR / f"{kind}_ai{uid}.jpg")
+    render_data = {
+        "kind": kind, "template": tpl, "out_path": path,
+        "title": payload.get("title") or "",
+        "text": payload.get("text") or "",
+        "extra": (payload.get("a") + "|" + payload.get("b")) if tpl == "comparison" else payload.get("extra") or "",
+        "price": payload.get("price") or "",
+        "use": (payload.get("verdict") or "") if tpl == "comparison" else payload.get("use") or "",
+    }
+    if tpl == "question":
+        render_data["extra"] = payload.get("text") or payload.get("title") or ""
+        render_data["title"] = "سوال امروز"
+    AIKnowledgeRenderer(shop).render(**render_data)
+
+    caption, tags = caption_for(tpl, data, shop["name"])
+    scheduled_at = parse_scheduled(payload.get("scheduled_at"))
+    title_map = {"fact": "دانستنی هوش مصنوعی", "tool": "معرفی ابزار",
+                 "prompt": "پرامپت روز", "comparison": "مقایسه ابزارها",
+                 "question": "سوال امروز"}
+    title = payload.get("title") or title_map[tpl]
+    pid = db.add_post(
+        kind, title=title[:90], caption=caption, hashtags=tags,
+        image_path=path, template=f"ai_{tpl}",
+        scheduled_at=scheduled_at,
+        status="scheduled" if scheduled_at else "draft",
+    )
+    db.log_activity(f"🤖 {'استوری' if kind == 'story' else 'پست'} «{title}» ساخته شد.")
+    return {"ok": True, "post": db.get_post(pid)}
+
+
 # ---------------- راه‌اندازی پیج ----------------
 @app.get("/api/setup")
 def setup_info():
@@ -685,7 +758,7 @@ def seed_samples():
     samples = sorted((BASE / "assets" / "samples").glob("*.*")) if (BASE / "assets" / "samples").exists() else []
     now = datetime.now(TEHRAN)
 
-    if db.get_setting("page_type") != "news" and not db.get_products():
+    if db.get_setting("page_type") == "shop" and not db.get_products():
         sample_products = [
             ("شمع دست‌ساز معطر", "با موم طبیعی و رایحه آرامش‌بخش؛ انتخابی خاص برای خانه شما", "185000", "🕯️"),
             ("لیوان سرامیکی دست‌ساز", "لعاب مات، مقاوم به حرارت و مناسب ماشین ظرفشویی", "240000", "☕"),
@@ -698,8 +771,9 @@ def seed_samples():
 
     # دو پست و یک استوری نمونه در آینده
     if not db.get_posts():
+        page_type = db.get_setting("page_type")
         # در حالت خبری، محتوای نمونه از اخبار واقعی ساخته می‌شود
-        if db.get_setting("page_type") == "news":
+        if page_type == "news":
             try:
                 made = scheduler.generate_news_content(fetch_first=False)
                 if made:
@@ -707,6 +781,15 @@ def seed_samples():
                     return
             except Exception as e:
                 db.log_activity(f"⚠️ ساخت نمونه خبری ناموفق بود: {e}")
+        # در حالت هوش مصنوعی، محتوای نمونه دانش AI ساخته می‌شود
+        if page_type == "ai":
+            try:
+                made = scheduler.generate_ai_content(fetch_first=False)
+                if made:
+                    db.log_activity("🤖 محتوای نمونه هوش مصنوعی ساخته شد: پست دانستنی + استوری‌ها.")
+                    return
+            except Exception as e:
+                db.log_activity(f"⚠️ ساخت نمونه هوش مصنوعی ناموفق بود: {e}")
         products = db.get_products()
         p1 = products[0] if products else None
         tomorrow = (now + timedelta(days=1)).replace(hour=20, minute=0, second=0, microsecond=0)

@@ -66,7 +66,55 @@ function go(view) {
   if (view === "growth") { loadRecommendations(); loadTasks(); }
   if (view === "products") loadProducts();
   if (view === "settings") fillSettings();
-  if (view === "create-post" || view === "create-story") loadProductSelects();
+  if (view === "create-post" || view === "create-story") { loadProductSelects(); applyPageMode(); }
+}
+
+let currentPageType = "shop";
+async function applyPageMode() {
+  try {
+    const s = await api("/api/state");
+    currentPageType = s.settings.page_type || "shop";
+  } catch (e) { /* ignore */ }
+  const isAI = currentPageType === "ai";
+  const postShop = $("#shop-post-form"), postAI = $("#ai-post-form");
+  const storyShop = $("#shop-story-form"), storyAI = $("#ai-story-form");
+  if (postShop) postShop.style.display = isAI ? "none" : "";
+  if (postAI) postAI.style.display = isAI ? "" : "none";
+  if (storyShop) storyShop.style.display = isAI ? "none" : "";
+  if (storyAI) storyAI.style.display = isAI ? "" : "none";
+  if (isAI) aiTplChanged("post");
+  if (isAI) aiTplChanged("story");
+}
+
+function aiTplChanged(kind) {
+  const tpl = $("#ai-" + kind + "-tpl").value;
+  const tool = $("#ai-" + kind + "-tool-extra");
+  const extra = $("#ai-" + kind + "-extra");
+  if (tool) tool.style.display = tpl === "tool" ? "" : "none";
+  if (extra) extra.style.display = tpl === "comparison" ? "" : "none";
+}
+
+async function aiGenerate(kind) {
+  const body = {
+    kind,
+    template: $("#ai-" + kind + "-tpl").value,
+    title: $("#ai-" + kind + "-title").value,
+    text: $("#ai-" + kind + "-text").value,
+    price: $("#ai-" + kind + "-price") ? $("#ai-" + kind + "-price").value : "",
+    use: $("#ai-" + kind + "-use") ? $("#ai-" + kind + "-use").value : "",
+    a: $("#ai-" + kind + "-a") ? $("#ai-" + kind + "-a").value : "",
+    b: $("#ai-" + kind + "-b") ? $("#ai-" + kind + "-b").value : "",
+    verdict: $("#ai-" + kind + "-verdict") ? $("#ai-" + kind + "-verdict").value : "",
+    scheduled_at: $("#ai-" + kind + "-schedule").value || null,
+  };
+  try {
+    const r = await api("/api/ai/generate", { method: "POST", body });
+    const p = r.post;
+    $("#ai-" + kind + "-preview").innerHTML =
+      `<img class="preview-img ${kind === "story" ? "story" : ""}" src="/generated/${p.image_path.split("/").pop()}">`;
+    toast("🤖 محتوا ساخته شد" + (p.status === "scheduled" ? " و زمان‌بندی شد!" : " (پیش‌نویس)"));
+    loadState();
+  } catch (e) { toast(e.message, true); }
 }
 
 // ---------------- اخبار ----------------
@@ -150,6 +198,7 @@ function addManualNews() {
       <label>منبع <input id="mn-source" value="دستی"></label>
       <label>دسته
         <select id="mn-cat">
+          <option value="هوش مصنوعی">هوش مصنوعی</option>
           <option value="سیاسی">سیاسی</option>
           <option value="اقتصادی">اقتصادی</option>
           <option value="ورزشی">ورزشی</option>
@@ -941,3 +990,4 @@ const GUIDE_HTML = `
 // ---------------- شروع ----------------
 loadState();
 loadProductSelects();
+applyPageMode();
