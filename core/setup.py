@@ -149,6 +149,13 @@ def _shop():
     }
 
 
+PAGE_CATEGORIES = {
+    "ai": "علم و فناوری (Science & Technology)",
+    "news": "اخبار و رسانه — وب‌سایت خبری (Media/News)",
+    "shop": "خرید و فروش — فروشگاه (Shopping & Retail)",
+}
+
+
 def name_ideas():
     shop = _shop()
     if shop["page_type"] == "news":
@@ -303,6 +310,7 @@ def setup_payload():
         "names": name_ideas(),
         "usernames": username_ideas(),
         "bio": build_bio(),
+        "category": PAGE_CATEGORIES.get(shop["page_type"], PAGE_CATEGORIES["shop"]),
         "steps": SETUP_STEPS.get(shop["page_type"], SETUP_STEPS["shop"]),
         "assets": {
             "profile_text": "/generated/brand/profile_text.jpg",

@@ -357,6 +357,8 @@ async function loadSetup() {
         <button class="btn small" onclick="copyPlain('${esc(u)}')">📋</button>
       </div>`).join("");
     $("#setup-bio").value = s.bio;
+    $("#setup-category-text").textContent = s.category || "—";
+    window._setupCategory = s.category || "";
     $("#setup-highlights").innerHTML = s.assets.highlights.map((h) => `
       <div class="brand-card">
         <img src="${h.url}" alt="${esc(h.label)}">
@@ -372,6 +374,10 @@ async function loadSetup() {
         <div><b>${esc(st[0])}</b><div class="s">${esc(st[1])}</div></div>
       </div>`).join("");
   } catch (e) { toast(e.message, true); }
+}
+
+function copyCategory() {
+  copyPlain(window._setupCategory || "");
 }
 
 function copyPlain(text) {
