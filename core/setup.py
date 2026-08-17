@@ -117,7 +117,7 @@ def name_ideas():
         if shop["tagline"]:
             ideas.append(f"{shop['name']} | {shop['tagline']}")
         ideas += [f"{shop['name']} | فروشگاه آنلاین", f"{shop['name']} | ارسال سریع"]
-    return list(dict.fromkeys(ideas))[:6]
+    return list(dict.fromkeys(ideas))[:10]
 
 
 def username_ideas():
