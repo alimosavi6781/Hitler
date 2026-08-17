@@ -17,6 +17,7 @@ from core.content import caption_ideas, generate_caption
 from core.ig_api import IGClient, IGError
 from core.images import NewsRenderer, PostRenderer
 from core.news import is_breaking, news_caption, seed_real_news
+from core.setup import setup_payload
 
 TEHRAN = ZoneInfo("Asia/Tehran")
 BASE = Path(__file__).resolve().parent
@@ -521,6 +522,12 @@ def news_update_source(sid: int, payload: dict):
 def news_delete_source(sid: int):
     db.delete_news_source(sid)
     return {"ok": True}
+
+
+# ---------------- راه‌اندازی پیج ----------------
+@app.get("/api/setup")
+def setup_info():
+    return setup_payload()
 
 
 # ---------------- اتصال اینستاگرام ----------------

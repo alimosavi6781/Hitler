@@ -248,3 +248,48 @@ details.guide summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .news-summary { color: #55536b; margin-top: 4px; line-height: 1.7; }
 .sources-list .item { padding: 8px 4px; }
 .sources-list .s { word-break: break-all; }
+
+/* ---------- راه‌اندازی پیج ---------- */
+.amber-note {
+  background: #fff7e6;
+  border: 1.5px solid #fcd34d;
+  color: #92400e;
+  font-size: 13.5px;
+  line-height: 2;
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+.brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 14px;
+}
+.brand-card {
+  text-align: center;
+  background: #fbfbfe;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+.brand-card img {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 14px rgba(30,27,48,.15);
+}
+.copy-row { padding: 8px 6px; }
+.copy-row .btn { flex-shrink: 0; }
+#setup-bio {
+  background: #f8f8fc;
+  font-size: 13.5px;
+  line-height: 2;
+}
+#setup-steps .task { align-items: flex-start; }
+#setup-steps .task input { margin-top: 5px; }
+#setup-steps .task .s { font-weight: 400; margin-top: 2px; }

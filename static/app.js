@@ -59,6 +59,7 @@ function go(view) {
   document.querySelectorAll(".view").forEach((v) =>
     v.classList.toggle("active", v.id === "view-" + view));
   if (view === "dashboard") loadState();
+  if (view === "setup") loadSetup();
   if (view === "calendar") loadCalendar("");
   if (view === "news") loadNews();
   if (view === "analytics") loadAnalytics();
@@ -277,6 +278,67 @@ function openModal(html) {
 }
 function closeModal(e) {
   if (!e || e.target === $("#modal-back")) $("#modal-back").classList.remove("open");
+}
+
+// ---------------- راه‌اندازی پیج ----------------
+async function copyText(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  try {
+    await navigator.clipboard.writeText(el.value);
+    toast("📋 کپی شد");
+  } catch (e) {
+    el.select();
+    document.execCommand("copy");
+    toast("📋 کپی شد");
+  }
+}
+
+async function loadSetup() {
+  try {
+    const s = await api("/api/setup");
+    $("#setup-names").innerHTML = s.names.map((n) => `
+      <div class="item copy-row">
+        <div class="grow"><div class="t">${esc(n)}</div></div>
+        <button class="btn small" onclick="copyPlain('${esc(n).replace(/'/g, "\\'")}')">📋</button>
+      </div>`).join("");
+    $("#setup-usernames").innerHTML = s.usernames.map((u) => `
+      <div class="item copy-row">
+        <div class="grow"><div class="t" dir="ltr" style="text-align:right">@${esc(u)}</div></div>
+        <button class="btn small" onclick="copyPlain('${esc(u)}')">📋</button>
+      </div>`).join("");
+    $("#setup-bio").value = s.bio;
+    $("#setup-highlights").innerHTML = s.assets.highlights.map((h) => `
+      <div class="brand-card">
+        <img src="${h.url}" alt="${esc(h.label)}">
+        <div class="s">${esc(h.label)}</div>
+        <a class="btn small" href="${h.url}" download>⬇️ دانلود</a>
+      </div>`).join("");
+
+    // چک‌لیست با ذخیره محلی
+    const done = JSON.parse(localStorage.getItem("setup_steps") || "{}");
+    $("#setup-steps").innerHTML = s.steps.map((st, i) => `
+      <div class="task ${done[i] ? "done" : ""}">
+        <input type="checkbox" ${done[i] ? "checked" : ""} onchange="toggleSetupStep(${i}, this.checked)">
+        <div><b>${esc(st[0])}</b><div class="s">${esc(st[1])}</div></div>
+      </div>`).join("");
+  } catch (e) { toast(e.message, true); }
+}
+
+function copyPlain(text) {
+  const tmp = document.createElement("textarea");
+  tmp.value = text;
+  document.body.appendChild(tmp);
+  tmp.select();
+  try { document.execCommand("copy"); toast("📋 کپی شد"); } catch (e) { toast("کپی ناموفق", true); }
+  tmp.remove();
+}
+
+function toggleSetupStep(i, checked) {
+  const done = JSON.parse(localStorage.getItem("setup_steps") || "{}");
+  done[i] = checked;
+  localStorage.setItem("setup_steps", JSON.stringify(done));
+  loadSetup();
 }
 
 // ---------------- داشبورد ----------------

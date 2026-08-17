@@ -20,6 +20,7 @@
     </div>
     <nav>
       <button class="nav-item active" data-view="dashboard"><span>🏠</span> داشبورد</button>
+      <button class="nav-item" data-view="setup"><span>🚀</span> راه‌اندازی پیج</button>
       <button class="nav-item" data-view="create-post"><span>🖼️</span> ساخت پست</button>
       <button class="nav-item" data-view="create-story"><span>📱</span> ساخت استوری</button>
       <button class="nav-item" data-view="calendar"><span>🗓️</span> تقویم انتشار</button>
@@ -34,6 +35,51 @@
 
   <!-- محتوا -->
   <main class="main">
+    <!-- راه‌اندازی پیج -->
+    <section id="view-setup" class="view">
+      <h1>🚀 راه‌اندازی پیج از صفر</h1>
+      <div class="panel amber-note">
+        ⚠️ ساخت خودِ اکانت اینستاگرام باید توسط خودت در اپ موبایل انجام شود (اینستاگرام به تأیید
+        شماره تلفن/ایمیل نیاز دارد و ساخت خودکار حساب خلاف قوانین آن است). اما همه‌چیزِ دیگر آماده است:
+        اسم، یوزرنیم، بیو، عکس پروفایل و کاور هایلایت را از همین صفحه بردار و پیجت را در ۱۰ دقیقه بساز. 👇
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head"><h2>📝 نام و یوزرنیم پیشنهادی</h2></div>
+          <label>نام پیج (فارسی — در نتایج جستجو مهم است)</label>
+          <div id="setup-names"></div>
+          <label style="margin-top:14px">یوزرنیم (لاتین — در آدرس پیج)</label>
+          <div id="setup-usernames"></div>
+          <label style="margin-top:14px">بیو آماده (کپی کن و در پروفایل بگذار)</label>
+          <textarea id="setup-bio" rows="6" readonly></textarea>
+          <div class="btn-row"><button class="btn primary" onclick="copyText('setup-bio')">📋 کپی بیو</button></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>🎨 عکس پروفایل</h2></div>
+          <div class="brand-grid">
+            <div class="brand-card">
+              <img src="/generated/brand/profile_ai.jpg" alt="لوگوی هوش مصنوعی" onerror="this.style.display='none'">
+              <div class="s">لوگوی آماده</div>
+              <a class="btn small" href="/generated/brand/profile_ai.jpg" download>⬇️ دانلود</a>
+            </div>
+            <div class="brand-card">
+              <img src="/generated/brand/profile_text.jpg" alt="لوگو با نام پیج">
+              <div class="s">لوگو با نام پیجت</div>
+              <a class="btn small" href="/generated/brand/profile_text.jpg" download>⬇️ دانلود</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>🗂️ کاور هایلایت (بعد از انتشار چند استوری فعال می‌شوند)</h2></div>
+        <div class="brand-grid" id="setup-highlights"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>✅ چک‌لیست راه‌اندازی (قدم‌به‌قدم)</h2></div>
+        <div id="setup-steps"></div>
+      </div>
+    </section>
+
     <!-- داشبورد -->
     <section id="view-dashboard" class="view active">
       <h1>داشبورد</h1>
@@ -271,9 +317,9 @@
       <h1>تنظیمات</h1>
       <div class="two-col">
         <div class="panel">
-          <div class="panel-head"><h2>🏪 اطلاعات فروشگاه</h2></div>
+          <div class="panel-head"><h2>🏪 اطلاعات پیج/فروشگاه</h2></div>
           <div class="form-grid">
-            <label>نام فروشگاه <input id="set-name"></label>
+            <label>نام پیج <input id="set-name"></label>
             <label>آیدی اینستاگرام (بدون @) <input id="set-handle" placeholder="my.shop"></label>
             <label>شعار کوتاه <input id="set-tagline" placeholder="کیفیت را با ما تجربه کنید"></label>
             <label>تلفن <input id="set-phone" placeholder="09120000000"></label>
