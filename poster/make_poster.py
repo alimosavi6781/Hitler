@@ -111,7 +111,7 @@ PHOTO_MODE = len(photo_files) >= 1
 
 # ---------- score plate ----------
 cx = 660
-cy = 690 if PHOTO_MODE else 780
+cy = 702 if PHOTO_MODE else 780
 plate_w = 640
 plate_h = 260 if PHOTO_MODE else 290
 px0, py0 = cx - plate_w / 2, cy - plate_h / 2
@@ -170,7 +170,7 @@ if PHOTO_MODE:
         sh = sh.filter(ImageFilter.GaussianBlur(10))
         return card, sh
 
-    py = 850
+    py = 862
     size = (470, 290)
     if len(photo_files) >= 2:
         specs = [(photo_files[0], 290, 2.5), (photo_files[1], 790, -2.5)]
