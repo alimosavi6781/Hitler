@@ -122,7 +122,7 @@ img.alpha_composite(plate)
 d = ImageDraw.Draw(img)
 
 f_team = font("FD-Bold", 44)
-f_score = font("FD-Black", 140)
+f_score = ImageFont.truetype("fonts/Vazirmatn-Black.ttf", 108)
 
 # team names under score (RTL: winner on right)
 ty = py0 + plate_h - 88
@@ -135,22 +135,16 @@ x2 = px0 + 48
 d.text((x1, ty), t1, font=f_team, fill=ICE)
 d.text((x2, ty), t2, font=f_team, fill=GREY)
 
-def digit_at(center_x, ch, fill):
-    b = d.textbbox((0, 0), ch, font=f_score)
-    x = center_x - (b[2] - b[0]) / 2 - b[0]
-    y = py0 + 22 - b[1]
-    d.text((x + 3, y + 4), ch, font=f_score, fill=(0, 0, 0, 200))
-    d.text((x, y), ch, font=f_score, fill=fill)
-
-c1 = x1 + (b1[2] - b1[0]) / 2
-c2 = x2 + (b2[2] - b2[0]) / 2
-digit_at(c1, "۱", ICE)
-digit_at(c2, "۰", WHITE)
-ob = d.textbbox((0, 0), "۱", font=f_score)
-row_center = py0 + 22 + (ob[3] - ob[1]) / 2
-db = d.textbbox((0, 0), "-", font=f_score)
-d.text((cx - (db[2] - db[0]) / 2 - db[0], row_center - (db[3] - db[1]) / 2 - db[1]),
-       "-", font=f_score, fill=(190, 205, 225))
+# compact Latin score centered — RTL pairing: winner's "1" on the right (above اتحاد)
+parts = [("0", GREY), (" - ", (185, 200, 220)), ("1", ICE)]
+total_w = sum(d.textlength(p, font=f_score) for p, _ in parts)
+sb = d.textbbox((0, 0), "0 - 1", font=f_score)
+sx = cx - total_w / 2
+sy = py0 + (plate_h - 88 - (sb[3] - sb[1])) / 2 - sb[1] + 4
+for p, col in parts:
+    d.text((sx + 3, sy + 4), p, font=f_score, fill=(0, 0, 0, 200))
+    d.text((sx, sy), p, font=f_score, fill=col)
+    sx += d.textlength(p, font=f_score)
 
 # ---------- description OR team photos ----------
 if PHOTO_MODE:
