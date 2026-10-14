@@ -196,6 +196,7 @@ def build():
 <div class="toolbar">
   <button type="button" onclick="window.print()">چاپ / ذخیره PDF این صفحه</button>
   <a href="shoulder-program.pdf" style="text-decoration:none"><button type="button">PDF کامل برنامه</button></a>
+  <a href="poster-a5-a6-a7.png" style="text-decoration:none"><button type="button">پوستر تصویری (یک تصویر)</button></a>
 </div>
 
 {body}

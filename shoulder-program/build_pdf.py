@@ -57,8 +57,8 @@ WHITE = (255, 255, 255)
 
 
 class Program(FPDF):
-    def __init__(self):
-        super().__init__(format="A4", unit="mm")
+    def __init__(self, fmt="A4"):
+        super().__init__(format=fmt, unit="mm")
         self.set_margins(14, 13, 14)
         self.set_auto_page_break(True, margin=15)
         self.add_font("vz", "", os.path.join(FDIR, "Vazirmatn-Regular.ttf"))

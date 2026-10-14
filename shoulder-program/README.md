@@ -8,6 +8,8 @@
 |---|---|
 | `shoulder-program.pdf` | **نسخه آماده اشتراک‌گذاری و چاپ** — ۱۲ صفحه A4: برنامه کامل + پیوست تصویری A5/A6/A7 (صفحه‌های ۷ تا ۱۲) + کارت جلسه قابل چاپ |
 | `exercises-a5-a6-a7.html` | **راهنمای تصویری سه حرکت پایانی** — وضعیت بدن، مسیر حرکت، مراحل اجرا، نکات و اشتباهات رایج |
+| `poster-a5-a6-a7.png` | **پوستر تصویری یک‌صفحه‌ای** A5 + A6 + A7 (همان محتوا در یک تصویر، مناسب ارسال در پیام‌رسان‌ها) |
+| `poster-a5-a6-a7.pdf` | همان پوستر به‌صورت PDF وکتور (قابل زوم بدون افت کیفیت) |
 | `index.html` | نسخه وب تعاملی: لاگر وزنه/تکرار برای هر ست (ذخیره خودکار در مرورگر)، نمودار آناتومی، نوار پیشرفت، دکمه چاپ |
 | `quick-card.html` | کارت یک‌صفحه‌ای A4 برای بردن به باشگاه |
 | `plan.md` | نسخه متنی کامل برنامه (خواندن در هر ادیتور یا کپی در یادداشت‌ها) |
@@ -15,6 +17,7 @@
 | `figures.py` | شکل‌های خطی تمرین‌ها — یک منبع هندسی مشترک که هم به SVG (وب) و هم به PDF رندر می‌شود |
 | `content_a567.py` | متن راهنمای A5/A6/A7 — منبع مشترک صفحه وب، PDF و `plan.md` |
 | `build_exercise_pages.py` | سازنده صفحه وب `exercises-a5-a6-a7.html` |
+| `build_poster.py` | سازنده پوستر تصویری `poster-a5-a6-a7.pdf` و `.png` |
 | `fonts/` | فونت وزیرمتن (woff2 برای وب، ttf برای PDF) — همه محلی، بدون CDN |
 
 ## مشاهده نسخه وب
@@ -30,6 +33,7 @@ python3 -m http.server 8000 --directory shoulder-program
 pip install fpdf2 arabic-reshaper python-bidi
 python3 build_exercise_pages.py   # صفحه وب راهنمای A5/A6/A7 (از figures.py + content_a567.py)
 python3 build_pdf.py              # خروجی: shoulder-program.pdf
+python3 build_poster.py           # خروجی: poster-a5-a6-a7.pdf و poster-a5-a6-a7.png (نیازمند numpy و pymupdf)
 ```
 
 شکل‌ها یک بار در `figures.py` تعریف می‌شوند و همان هندسه هم در SVG صفحه وب و هم در PDF رسم می‌شود؛
