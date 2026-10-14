@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>کارت جلسه سرشانه — قابل چاپ</title>
+<style>
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/vazirmatn-arabic-400-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+2010-2011,U+204F,U+2E41;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/vazirmatn-arabic-600-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+2010-2011,U+204F,U+2E41;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/vazirmatn-arabic-700-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+2010-2011,U+204F,U+2E41;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/vazirmatn-arabic-800-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+2010-2011,U+204F,U+2E41;}
+  :root{
+    --ink:#12161d; --dim:#5a6474; --line:#c9d0dc; --line2:#e6eaf1;
+    --amber:#9a6200; --amberbg:#fdf4e3; --teal:#0c6f60; --tealbg:#e9f7f4; --rose:#a83535; --rosebg:#fdeeee;
+    --font:'Vazirmatn',system-ui,Tahoma,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef1f6;font-family:var(--font);color:var(--ink);font-size:13px;line-height:1.7;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet{width:210mm;min-height:auto;margin:16px auto;background:#fff;padding:12mm 12mm 10mm;
+    box-shadow:0 6px 30px rgba(15,23,42,.14);border-radius:6px}
+  .head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;
+    border-bottom:2.5px solid var(--ink);padding-bottom:8px;margin-bottom:12px}
+  .head h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.2px}
+  .head p{margin:2px 0 0;font-size:11.5px;color:var(--dim)}
+  .head .tag{font-size:10.5px;font-weight:700;background:var(--amberbg);color:var(--amber);
+    border:1px solid #e8d4a8;border-radius:999px;padding:4px 10px;white-space:nowrap}
+  .bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .bar span{font-size:10.5px;font-weight:600;color:var(--dim);background:#f4f6fa;border:1px solid var(--line2);
+    border-radius:6px;padding:3px 8px}
+  .bar span b{color:var(--ink)}
+  h2{font-size:12px;font-weight:800;margin:14px 0 6px;color:var(--ink);
+    border-right:4px solid var(--amber);padding-right:8px}
+  h2.teal{border-right-color:var(--teal)} h2.rose{border-right-color:var(--rose)}
+  table{width:100%;border-collapse:collapse;font-size:11.5px}
+  th,td{border:1px solid var(--line);padding:5px 6px;text-align:right;vertical-align:middle}
+  thead th{background:#f4f6fa;font-size:10.5px;font-weight:700;color:var(--dim);white-space:nowrap}
+  td.c,th.c{text-align:center}
+  td.n{font-weight:700;white-space:nowrap}
+  .ex-cell b{display:block;font-weight:700}
+  .ex-cell i{font-style:normal;font-size:10px;color:var(--dim);direction:ltr;display:block;font-weight:500}
+  .blank{background:repeating-linear-gradient(#fff,#fff 15px,#eef1f6 15px,#eef1f6 16px)}
+  .warm{display:grid;grid-template-columns:repeat(2,1fr);gap:3px 14px;font-size:11.5px;margin:0;padding:0;list-style:none}
+  .warm li{display:flex;gap:7px;align-items:flex-start}
+  .warm li::before{content:"";flex:0 0 auto;width:11px;height:11px;border:1.4px solid var(--line);
+    border-radius:3px;margin-top:4px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .box{border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-size:11.5px}
+  .box h3{margin:0 0 5px;font-size:11.5px;font-weight:800}
+  .box ul{margin:0;padding-right:15px}
+  .box li{margin-bottom:3px}
+  .box.warn{background:var(--rosebg);border-color:#eccfcf}
+  .box.ok{background:var(--tealbg);border-color:#cbe9e3}
+  .box.pg{background:var(--amberbg);border-color:#ecdcb6}
+  .foot{margin-top:12px;border-top:1px solid var(--line);padding-top:7px;
+    display:flex;justify-content:space-between;font-size:10px;color:var(--dim);gap:10px}
+  .noprint{text-align:center;margin:14px 0 4px}
+  .noprint button{font-family:var(--font);font-size:12px;font-weight:600;background:#12161d;color:#fff;
+    border:0;border-radius:8px;padding:9px 18px;cursor:pointer}
+  @media print{
+    body{background:#fff;font-size:11px}
+    .sheet{width:auto;margin:0;padding:9mm 9mm 6mm;box-shadow:none;border-radius:0}
+    .noprint{display:none}
+    @page{size:A4;margin:0}
+  }
+  @media screen and (max-width:820px){
+    .sheet{width:auto;margin:12px;padding:16px}
+    .cols{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <div class="head">
+    <div>
+      <h1>کارت جلسه — سرشانه (Session A)</h1>
+      <p>برنامه ۸ هفته‌ای رشد دلتوئید · سطح متوسط · باشگاه کامل · RIR ۱–۲ (آخرین ست هر حرکت: ۰–۱)</p>
+    </div>
+    <span class="tag">تاریخ: ............</span>
+  </div>
+
+  <div class="bar">
+    <span>مدت: <b>۵۰–۶۰ دقیقه</b></span>
+    <span>کل ست کاری: <b>۲۰</b></span>
+    <span>بخش میانی: <b>۷ ست</b></span>
+    <span>خلفی + Y: <b>۹ ست</b></span>
+    <span>قدامی/پرس: <b>۴ ست</b></span>
+    <span>سلامت شانه: <b>۲ ست</b></span>
+  </div>
+
+  <h2>۱) گرم‌کردن (۱۰ دقیقه — بدون استثنا)</h2>
+  <ul class="warm">
+    <li>دوچرخه/تردمیل سبک — ۳ تا ۵ دقیقه</li>
+    <li>کشش کش از جلو (Band Pull-apart) — ۲×۲۰</li>
+    <li>چرخش خارجی با کش — ۲×۱۵ هر دست</li>
+    <li>Y-T-W روی میز شیب‌دار — ۲×۱۰ هر حرف</li>
+    <li>اسلاید دیوار با کشش سراتوس — ۲×۱۰</li>
+    <li>۲ ست سبک (۵۰٪ و ۷۰٪) از حرکت A1</li>
+  </ul>
+
+  <h2>۲) حرکت‌ها — به همین ترتیب</h2>
+  <table>
+    <thead>
+      <tr>
+        <th class="c" style="width:26px">#</th>
+        <th style="width:37%">حرکت</th>
+        <th class="c">ست × تکرار</th>
+        <th class="c">RIR</th>
+        <th class="c">استراحت</th>
+        <th class="c" style="width:24%">وزنه × تکرار (هر ست)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="c n">A1</td>
+        <td class="ex-cell"><b>پرس سرشانه دمبل نشسته</b><i>Seated Dumbbell Press — پشتی ۸۰–۸۵°</i></td>
+        <td class="c n">۴ × ۶–۱۰</td><td class="c">۱–۲</td><td class="c">۲–۳′</td>
+        <td class="blank">۱) &nbsp;&nbsp;&nbsp; ۲) &nbsp;&nbsp;&nbsp; ۳) &nbsp;&nbsp;&nbsp; ۴)</td>
+      </tr>
+      <tr>
+        <td class="c n">A2</td>
+        <td class="ex-cell"><b>نشر جانبی کابل تک‌دست از پشت بدن</b><i>Single-Arm Cable Lateral Raise</i></td>
+        <td class="c n">۴ × ۱۲–۱۸</td><td class="c">۱</td><td class="c">۶۰–۹۰″</td>
+        <td class="blank">۱) &nbsp;&nbsp;&nbsp; ۲) &nbsp;&nbsp;&nbsp; ۳) &nbsp;&nbsp;&nbsp; ۴)</td>
+      </tr>
+      <tr>
+        <td class="c n">A3</td>
+        <td class="ex-cell"><b>نشر جانبی دستگاه / دمبل خم‌شده</b><i>Machine / Lean-away Lateral Raise</i></td>
+        <td class="c n">۳ × ۱۲–۱۵</td><td class="c">۰–۱</td><td class="c">۶۰–۹۰″</td>
+        <td class="blank">۱) &nbsp;&nbsp;&nbsp; ۲) &nbsp;&nbsp;&nbsp; ۳)</td>
+      </tr>
+      <tr>
+        <td class="c n">A4</td>
+        <td class="ex-cell"><b>فیس‌پول با طناب</b><i>Cable Face Pull</i></td>
+        <td class="c n">۳ × ۱۵–۲۰</td><td class="c">۱–۲</td><td class="c">۶۰″</td>
+        <td class="blank">۱) &nbsp;&nbsp;&nbsp; ۲) &nbsp;&nbsp;&nbsp; ۳)</td>
+      </tr>
+      <tr>
+        <td class="c n">A5</td>
+        <td class="ex-cell"><b>نشر خم (پشت شانه) دستگاه یا کابل</b><i>Reverse Pec Deck / Cable Rear Delt Fly</i></td>
+        <td class="c n">۳ × ۱۲–۲۰</td><td class="c">۱</td><td class="c">۶۰–۹۰″</td>
+        <td class="blank">۱) &nbsp;&nbsp;&nbsp; ۲) &nbsp;&nbsp;&nbsp; ۳)</td>
+      </tr>
+      <tr>
+        <td class="c n">A6</td>
+        <td class="ex-cell"><b>نشر Y روی میز شیب‌دار یا کابل</b><i>Incline / Cable Y-Raise</i></td>
+        <td class="c n">۳ × ۱۲–۱۵</td><td class="c">۱</td><td class="c">۶۰″</td>
+        <td class="blank">۱) &nbsp;&nbsp;&nbsp; ۲) &nbsp;&nbsp;&nbsp; ۳)</td>
+      </tr>
+      <tr>
+        <td class="c n">A7</td>
+        <td class="ex-cell"><b>چرخش خارجی کابل (سلامت شانه)</b><i>Cable External Rotation</i></td>
+        <td class="c n">۲ × ۱۵</td><td class="c">سبک</td><td class="c">۴۵–۶۰″</td>
+        <td class="blank">۱) &nbsp;&nbsp;&nbsp; ۲)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="teal">۳) دوز دوم هفتگی (در انتهای روز پرس)</h2>
+  <table>
+    <thead>
+      <tr><th style="width:45%">حرکت</th><th class="c">ست × تکرار</th><th class="c">RIR</th><th class="c">وزنه × تکرار (هر ست)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="ex-cell"><b>نشر جانبی کابل تک‌دست</b><i>Cable Lateral Raise</i></td>
+        <td class="c n">۳ × ۱۲–۲۰</td><td class="c">۱</td>
+        <td class="blank">۱) &nbsp;&nbsp;&nbsp; ۲) &nbsp;&nbsp;&nbsp; ۳)</td></tr>
+      <tr><td class="ex-cell"><b>نشر خم کابل</b><i>Cable Rear Delt Fly</i></td>
+        <td class="c n">۲–۳ × ۱۵–۲۰</td><td class="c">۱–۲</td>
+        <td class="blank">۱) &nbsp;&nbsp;&nbsp; ۲) &nbsp;&nbsp;&nbsp; ۳)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="cols" style="margin-top:12px">
+    <div class="box pg">
+      <h3>پیشروی این هفته (پیشروی دوگانه)</h3>
+      <ul>
+        <li>هدف: <b>یک تکرار بیشتر</b> از جلسه قبل در هر ست، با همان تکنیک.</li>
+        <li>اگر در همه ست‌ها به سقف بازه رسیدی (مثلاً ۱۸ در A2)، جلسه بعد وزنه را <b>۲.۵٪</b> زیاد کن.</li>
+      </ul>
+    </div>
+    <div class="box ok">
+      <h3>یادآوری تکنیک</h3>
+      <ul>
+        <li>تمپو: ۱″ بالا · ۱″ توقف اوج · ۲–۳″ پایین.</li>
+        <li>در نشر جانبی: تنه ثابت، بدون شراگ، دامنه از پشت بدن.</li>
+        <li>ست گرم‌کردن هرگز تا نزدیک ناتوانی نباشد.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box warn" style="margin-top:10px">
+    <h3>قانون درد (شانه با تق‌تق و درد خفیف)</h3>
+    <ul>
+      <li>هر حرکت با <b>تکنیک درست</b> و در <b>دامنه بدون درد</b> — نه بیشتر. اگر همان روز درد ۳/۱۰ شد، حرکت را همان‌جا تمام کن.</li>
+      <li>پرس از پشت گردن، دیپ عمیق و زیربغل با گریپ بسته: خط قرمز.</li>
+      <li>اگر درد شبانه، ضعف ناگهانی یا محدودشدن دامنه داشت → تمرین را متوقف کن و ارزیابی تخصصی بگیر.</li>
+    </ul>
+  </div>
+
+  <div class="foot">
+    <span>۸ هفته: ۱) پایه ۲) پیشروی ۳) سنگین ۴) دیلود ۵) تشدید ۶) پارشال ۷) رکورد ۸) دیلود + سنجش</span>
+    <span>جلسه بعدی: ..............</span>
+  </div>
+</div>
+
+<div class="noprint"><button type="button" onclick="window.print()">چاپ این کارت (A4)</button></div>
+
+</body>
+</html>

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>برنامه حرفه‌ای رشد سرشانه | دلتوئید سه‌بخشی</title>
+<meta name="description" content="برنامه تمرینی اصولی و دقیق برای بزرگ کردن سرشانه‌ها: حجم هوشمند، تکنیک، پیشروی ۸ هفته‌ای و پروتکل شانه‌دوست.">
+<style>
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/vazirmatn-arabic-400-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/vazirmatn-arabic-500-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/vazirmatn-arabic-600-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/vazirmatn-arabic-700-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/vazirmatn-arabic-800-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/vazirmatn-latin-400-normal.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/vazirmatn-latin-500-normal.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/vazirmatn-latin-600-normal.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/vazirmatn-latin-700-normal.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+  @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/vazirmatn-latin-800-normal.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+
+  :root{
+    --bg:#0e1014; --bg2:#141821; --card:#171c26; --card2:#1d2331;
+    --line:#2a3242; --txt:#e8edf5; --dim:#98a4b8; --dim2:#6f7c92;
+    --amber:#ffb020; --amber-soft:#3a2d10;
+    --teal:#3ad0b8; --teal-soft:#0f2e2c;
+    --rose:#ff6b6b; --rose-soft:#3a1a1f;
+    --blue:#5aa9ff; --blue-soft:#132539;
+    --ok:#4ade80; --ok-soft:#12301f;
+    --r:16px; --r2:12px;
+    --font:'Vazirmatn',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(255,176,32,.10), transparent 60%),
+      radial-gradient(900px 500px at 5% 0%, rgba(58,208,184,.08), transparent 55%),
+      var(--bg);
+    color:var(--txt);font-family:var(--font);font-size:16px;line-height:1.95;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 18px 80px}
+  .en{font-weight:500;font-size:.78em;color:var(--dim2);direction:ltr;display:inline-block}
+
+  /* ---------- HERO ---------- */
+  header.hero{padding:54px 0 26px;border-bottom:1px solid var(--line);margin-bottom:26px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:.8rem;font-weight:600;color:var(--amber);
+    background:var(--amber-soft);border:1px solid #4b3a12;padding:6px 13px;border-radius:999px;margin-bottom:18px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 4px rgba(255,176,32,.16)}
+  h1{font-size:clamp(1.7rem,5vw,2.7rem);line-height:1.35;margin:0 0 12px;font-weight:800;letter-spacing:-.5px}
+  h1 .hl{background:linear-gradient(180deg,transparent 62%,rgba(255,176,32,.32) 62%);padding:0 3px}
+  .sub{color:var(--dim);font-size:1.03rem;max-width:64ch;margin:0}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+  .chip{font-size:.82rem;font-weight:600;color:var(--dim);background:var(--card);border:1px solid var(--line);
+    padding:7px 13px;border-radius:999px}
+  .chip b{color:var(--txt)}
+
+  /* ---------- NAV ---------- */
+  nav.toc{position:sticky;top:0;z-index:30;background:rgba(14,16,20,.86);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);margin:0 -18px 34px;padding:10px 18px;overflow-x:auto}
+  nav.toc ul{display:flex;gap:8px;list-style:none;margin:0;padding:0;white-space:nowrap}
+  nav.toc a{font-size:.82rem;font-weight:600;color:var(--dim);text-decoration:none;padding:6px 11px;border-radius:9px;display:inline-block}
+  nav.toc a:hover{color:var(--txt);background:var(--card2)}
+
+  /* ---------- SECTIONS ---------- */
+  section{margin-bottom:52px;scroll-margin-top:66px}
+  .sec-h{display:flex;align-items:center;gap:12px;margin:0 0 20px}
+  .sec-n{flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+    background:var(--card2);border:1px solid var(--line);font-weight:700;font-size:.9rem;color:var(--amber)}
+  h2{font-size:clamp(1.2rem,3.4vw,1.55rem);margin:0;font-weight:800;letter-spacing:-.3px}
+  h3{font-size:1.02rem;margin:0;font-weight:700}
+  p{margin:0 0 12px}
+  .lead{color:var(--dim);margin-bottom:20px}
+
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+  .card h3{margin-bottom:8px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .card p{margin:0;color:var(--dim);font-size:.93rem}
+  .card p+p{margin-top:9px}
+  .pill{font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .p-amber{background:var(--amber-soft);color:var(--amber);border:1px solid #4b3a12}
+  .p-teal{background:var(--teal-soft);color:var(--teal);border:1px solid #14453f}
+  .p-rose{background:var(--rose-soft);color:var(--rose);border:1px solid #4d2229}
+  .p-blue{background:var(--blue-soft);color:var(--blue);border:1px solid #1b3a58}
+  .p-ok{background:var(--ok-soft);color:var(--ok);border:1px solid #1a4a2e}
+
+  .big{font-size:1.9rem;font-weight:800;line-height:1.2;display:block;margin-bottom:2px}
+  .n-amber{color:var(--amber)} .n-teal{color:var(--teal)} .n-rose{color:var(--rose)} .n-blue{color:var(--blue)} .n-ok{color:var(--ok)}
+
+  /* ---------- EXERCISE CARD ---------- */
+  .ses-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;
+    background:linear-gradient(90deg,var(--card2),var(--card));border:1px solid var(--line);
+    border-radius:var(--r);padding:15px 18px;margin-bottom:16px}
+  .ses-head h3{font-size:1.06rem}
+  .ses-head .meta{color:var(--dim);font-size:.85rem}
+  .ex{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px 18px;margin-bottom:13px}
+  .ex-top{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+  .ex-id{flex:0 0 auto;width:30px;height:30px;border-radius:9px;background:var(--amber-soft);color:var(--amber);
+    border:1px solid #4b3a12;display:grid;place-items:center;font-weight:800;font-size:.82rem}
+  .ex-name{flex:1 1 220px;min-width:180px}
+  .ex-name h3{font-size:1.02rem;margin-bottom:3px}
+  .ex-specs{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px}
+  .sp{font-size:.78rem;font-weight:600;background:var(--bg2);border:1px solid var(--line);color:var(--dim);
+    padding:4px 10px;border-radius:8px}
+  .sp.key{color:var(--amber);border-color:#4b3a12;background:var(--amber-soft)}
+  .ex-note{margin:12px 0 0;font-size:.9rem;color:var(--dim);border-right:3px solid var(--line);padding-right:11px}
+  .ex-note b{color:var(--txt)}
+  .warn{border-right-color:var(--rose)}
+  .warn b{color:var(--rose)}
+
+  /* ---------- LOGGER ---------- */
+  .log-wrap{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+  .log-title{font-size:.78rem;font-weight:700;color:var(--dim2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .log-rows{display:flex;flex-direction:column;gap:7px}
+  .lrow{display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:center}
+  .lrow label{display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--dim);font-weight:600;cursor:pointer;user-select:none}
+  .lrow input[type=checkbox]{appearance:none;width:21px;height:21px;border-radius:6px;border:1.6px solid var(--line);
+    background:var(--bg2);cursor:pointer;position:relative;flex:0 0 auto;transition:.15s;margin:0}
+  .lrow input[type=checkbox]:checked{background:var(--ok);border-color:var(--ok)}
+  .lrow input[type=checkbox]:checked::after{content:"";position:absolute;inset:5px 4px;border:solid #08120c;
+    border-width:0 0 2.5px 2.5px;transform:rotate(-45deg)}
+  .lrow input[type=text],.lrow input[type=number]{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);
+    border-radius:9px;padding:7px 10px;font-family:var(--font);font-size:.85rem;text-align:center;min-width:0}
+  .lrow input:focus{outline:2px solid rgba(255,176,32,.4);outline-offset:1px}
+  .lrow .unit{font-size:.7rem;color:var(--dim2)}
+  .lhead{display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;font-size:.72rem;color:var(--dim2);font-weight:600;margin-bottom:4px}
+  .lhead span:not(:first-child){text-align:center}
+
+  /* ---------- TABLE ---------- */
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--card)}
+  table{width:100%;border-collapse:collapse;font-size:.89rem;min-width:520px}
+  th,td{padding:12px 14px;text-align:right;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{background:var(--card2);font-size:.79rem;color:var(--dim);font-weight:700;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:rgba(255,255,255,.015)}
+  td b{color:var(--txt)}
+  .mono{font-variant-numeric:tabular-nums}
+
+  /* ---------- LISTS ---------- */
+  ul.clean{list-style:none;padding:0;margin:0}
+  ul.clean li{position:relative;padding-right:26px;margin-bottom:9px;font-size:.93rem;color:var(--dim)}
+  ul.clean li::before{content:"";position:absolute;right:7px;top:.72em;width:7px;height:7px;border-radius:2px;background:var(--dim2)}
+  ul.do li::before{background:var(--ok)}
+  ul.dont li::before{background:var(--rose)}
+  ul.clean li b{color:var(--txt)}
+
+  .callout{border-radius:var(--r);padding:16px 18px;border:1px solid var(--line);background:var(--card);margin:16px 0}
+  .callout.amber{border-color:#4b3a12;background:linear-gradient(90deg,var(--amber-soft),transparent 75%)}
+  .callout.teal{border-color:#14453f;background:linear-gradient(90deg,var(--teal-soft),transparent 75%)}
+  .callout.rose{border-color:#4d2229;background:linear-gradient(90deg,var(--rose-soft),transparent 75%)}
+  .callout h3{margin-bottom:7px;font-size:.98rem}
+  .callout p{color:var(--dim);margin:0;font-size:.92rem}
+  .callout p+p{margin-top:8px}
+
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+  .kpi .card{text-align:center;padding:16px 12px}
+  .kpi .lbl{font-size:.79rem;color:var(--dim);font-weight:600}
+
+  /* ---------- PROGRESS ---------- */
+  .progress{position:sticky;bottom:14px;z-index:25;background:rgba(23,28,38,.94);backdrop-filter:blur(10px);
+    border:1px solid var(--line);border-radius:14px;padding:11px 15px;display:flex;align-items:center;gap:12px;margin-top:22px}
+  .progress .bar{flex:1;height:8px;background:var(--bg2);border-radius:999px;overflow:hidden}
+  .progress .fill{height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--teal));transition:width .25s}
+  .progress .txt{font-size:.82rem;font-weight:700;color:var(--dim);white-space:nowrap}
+  .progress button{background:var(--bg2);border:1px solid var(--line);color:var(--dim);font-family:var(--font);
+    font-size:.78rem;font-weight:600;padding:6px 11px;border-radius:9px;cursor:pointer;white-space:nowrap}
+  .progress button:hover{color:var(--txt)}
+
+  .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}
+  .toolbar button{background:var(--card);border:1px solid var(--line);color:var(--dim);font-family:var(--font);
+    font-size:.82rem;font-weight:600;padding:9px 15px;border-radius:10px;cursor:pointer}
+  .toolbar button:hover{color:var(--txt);border-color:#3b4358}
+
+  footer{border-top:1px solid var(--line);padding-top:22px;color:var(--dim2);font-size:.82rem}
+  footer h3{color:var(--dim);font-size:.9rem;margin-bottom:9px}
+  footer ol{margin:0 0 18px;padding-right:20px}
+  footer li{margin-bottom:6px;line-height:1.8}
+  .disclaimer{background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:14px 16px;margin-bottom:18px;color:var(--dim)}
+  a{color:var(--amber)}
+
+  /* ---------- SVG ---------- */
+  .anat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;overflow:hidden}
+  .anat svg{width:100%;height:auto;display:block}
+  .anat text{font-family:var(--font)}
+
+  @media (max-width:640px){
+    body{font-size:15px}
+    .lrow{grid-template-columns:auto 1fr 1fr}
+    .log-rows{gap:8px}
+    header.hero{padding:34px 0 20px}
+  }
+
+  /* ---------- PRINT ---------- */
+  @media print{
+    :root{--bg:#fff;--bg2:#fff;--card:#fff;--card2:#f5f6f8;--line:#ccd2dc;--txt:#11151c;--dim:#3d4757;--dim2:#5b6675;
+      --amber:#a86a00;--amber-soft:#fdf3e0;--teal:#0b7a6a;--teal-soft:#e8f7f4;--rose:#b03030;--rose-soft:#fdeeee;
+      --blue:#1b5fa8;--blue-soft:#eaf2fb;--ok:#1a7a44;--ok-soft:#eaf7ef}
+    body{background:#fff;font-size:11pt}
+    nav.toc,.progress,.toolbar{display:none!important}
+    section{break-inside:avoid-page;margin-bottom:20px}
+    .ex,.card,.callout,.tbl-wrap{break-inside:avoid}
+    .lrow input[type=text],.lrow input[type=number]{border:0;border-bottom:1px solid #bbb;border-radius:0;background:#fff}
+    .lrow input[type=checkbox]{border-color:#888}
+    .sec-n{background:#eee}
+    a{color:inherit;text-decoration:none}
+    footer{color:#444}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <span class="kicker"><span class="dot"></span> برنامه اختصاصی — سطح متوسط، باشگاه کامل</span>
+  <h1>برنامه حرفه‌ای رشد سرشانه<br><span class="hl">دلتوئید سه‌بخشی، حجم دقیق، تکنیک اصولی</span></h1>
+  <p class="sub">یک جلسه اختصاصی سرشانه + دوز دوم سبک روی روز پرس، در قالب یک بلوک ۸ هفته‌ای با پیشروی مشخص، پروتکل گرم‌کردن، و اصلاح‌های ویژه برای شانه‌ای که گاهی تق‌تق می‌دهد.</p>
+  <div class="chips">
+    <span class="chip">تناوب: <b>۱ روز اختصاصی</b> + دوز دوم</span>
+    <span class="chip">حجم هفتگی: <b>~۲۶ ست مستقیم</b></span>
+    <span class="chip">مدت جلسه: <b>۵۰–۶۰ دقیقه</b></span>
+    <span class="chip">بلوک: <b>۸ هفته</b> (۲ دیلود)</span>
+    <span class="chip">شدت: <b>RIR ۰–۳</b></span>
+  </div>
+</header>
+
+<nav class="toc">
+  <ul>
+    <li><a href="#osul">۱. اصول</a></li>
+    <li><a href="#anat">۲. آناتومی</a></li>
+    <li><a href="#warm">۳. گرم‌کردن</a></li>
+    <li><a href="#barname">۴. برنامه اصلی</a></li>
+    <li><a href="#doz2">۵. دوز دوم</a></li>
+    <li><a href="#progress">۶. پیشروی ۸ هفته</a></li>
+    <li><a href="#pain">۷. درد و تق‌تق</a></li>
+    <li><a href="#food">۸. تغذیه و ریکاوری</a></li>
+    <li><a href="#track">۹. سنجش پیشرفت</a></li>
+  </ul>
+</nav>
+
+<!-- ================= 1. PRINCIPLES ================= -->
+<section id="osul">
+  <div class="sec-h"><span class="sec-n">۱</span><h2>اصولی که موتور رشد شانه‌اند</h2></div>
+  <p class="lead">اگر سرشانه‌ات با وجود تمرین زیاد رشد نمی‌کند، تقریباً همیشه یکی از این شش مورد خراب است — نه «ژن».</p>
+
+  <div class="grid g2">
+    <article class="card">
+      <h3>بخش میانی = عرض شانه <span class="pill p-amber">مهم‌ترین</span></h3>
+      <p>آن چیزی که شانه را «گرد و پهن» نشان می‌دهد، بخش <b>جانبی (میانی)</b> است. این بخش فقط با <b>ابداکشن</b> یعنی نشر از پهلو به‌طور مؤثر بار می‌گیرد و در پرس‌ها سهم کمی دارد.</p>
+      <p>پس حجم مستقیم و باکیفیت نشر از پهلو، ستون فقرات برنامه است.</p>
+    </article>
+
+    <article class="card">
+      <h3>بخش خلفی = تعادل و ضخامت <span class="pill p-teal">نقطه کور</span></h3>
+      <p>بیشتر افراد (به‌خصوص با روزی چند جلسه پرس سینه) این بخش را کاملاً نادیده می‌گیرند. نتیجه: شانه‌های جلوافتاده، عدم تعادل عضلانی و ظاهر «تو‌رفته» از نمای پهلو.</p>
+      <p>در این برنامه، حجم مستقیم پشت شانه <b>حداقل برابر</b> حجم جلوی شانه است.</p>
+    </article>
+
+    <article class="card">
+      <h3>بخش قدامی = تقریباً مفت <span class="pill p-blue">کم‌هزینه</span></h3>
+      <p>هر پرس سینه، پرس سرشانه، دیپ و حتی حرکت‌های کششی سنگین، بخش جلویی را به‌شدت تحریک می‌کنند. اضافه کردن ۶ ست نشر جلو، بیشتر «ست بی‌فایده» است تا رشد.</p>
+      <p>در برنامه فقط ۱ حرکت پرس سنگین داریم؛ همین برای جلوی شانه کافی است.</p>
+    </article>
+
+    <article class="card">
+      <h3>ست مؤثر = ۵ تکرار آخر <span class="pill p-amber">شدت</span></h3>
+      <p>محرک اصلی رشد، آخرین تکرارهای نزدیک به ناتوانی است. اگر حرکتی را در حالی که ۵ تکرار دیگر در توان داری رها کنی، <b>ست نوشته‌ای ولی محرک نداده‌ای</b>.</p>
+      <p>هدف: بیشتر ست‌ها <b>RIR ۱–۲</b> و فقط آخرین ست هر حرکت <b>RIR ۰–۱</b>. (۰ = دیگر یک تکرار هم در توان نیست.)</p>
+    </article>
+
+    <article class="card">
+      <h3>اضافه‌بار پیشرونده <span class="pill p-teal">قانون طلایی</span></h3>
+      <p>بدون پیشروی، بدن دلیلی برای ساختن عضله ندارد. روش کار: <b>پیشروی دوگانه</b> — اول تکرار را در بازه بالا ببر، بعد وزنه را ۲.۵ تا ۵ درصد زیاد کن و تکرار را دوباره از پایین شروع کن.</p>
+    </article>
+
+    <article class="card">
+      <h3>تنش در دامنه کشیده <span class="pill p-blue">نکته پیشرفته</span></h3>
+      <p>شواهد رو به رشدی نشان می‌دهد بارگذاری عضله در وضعیت <b>کشیده</b> محرک قوی‌تری برای رشد است. در نشر جانبی یعنی: دست از <b>عقب بدن</b> شروع کند، نه از جلوی ران.</p>
+      <p>به همین دلیل در این برنامه نشر کابلِ تک‌دست از پشت بدن، حرکت اول جانبی است.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ================= 2. ANATOMY ================= -->
+<section id="anat">
+  <div class="sec-h"><span class="sec-n">۲</span><h2>آناتومی: دقیقاً چه چیزی را می‌خواهی بزرگ کنی؟</h2></div>
+  <p class="lead">دلتوئید یک عضله نیست؛ سه بسته عضلانی است که از سه جهت مختلف حرکت می‌دهند. هر بسته، حرکت و حجم خودش را می‌خواهد.</p>
+
+  <div class="anat">
+    <div class="anat-pad" style="max-width:720px;margin:0 auto">
+      <svg viewBox="0 0 600 400" role="img" aria-label="نمای از بالای شانه راست: بخش قدامی، میانی و خلفی دلتوئید">
+        <defs>
+          <linearGradient id="armg" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#2a3242"/><stop offset="100%" stop-color="#1d2331"/>
+          </linearGradient>
+        </defs>
+
+        <rect x="40" y="96" width="126" height="184" rx="24" fill="#1d2331" stroke="#2a3242" stroke-width="2"/>
+        <text x="103" y="196" text-anchor="middle" direction="rtl" fill="#6f7c92" font-size="13">تنه</text>
+
+        <rect x="322" y="140" width="212" height="46" rx="20" fill="url(#armg)" stroke="#2a3242" stroke-width="2"/>
+        <text x="474" y="170" text-anchor="middle" direction="rtl" fill="#6f7c92" font-size="13">بازو</text>
+
+        <circle cx="322" cy="163" r="38" fill="#232a38" stroke="#3a4356" stroke-width="2"/>
+
+        <path d="M322.0,115.0 A48,48 0 0 1 363.6,139.0 L387.8,125.0 A76,76 0 0 0 322.0,87.0 Z" fill="#ff6b6b" opacity="0.93"/>
+        <path d="M363.6,139.0 A48,48 0 0 1 363.6,187.0 L387.8,201.0 A76,76 0 0 0 387.8,125.0 Z" fill="#ffb020" opacity="0.95"/>
+        <path d="M363.6,187.0 A48,48 0 0 1 322.0,211.0 L322.0,239.0 A76,76 0 0 0 387.8,201.0 Z" fill="#3ad0b8" opacity="0.93"/>
+
+        <text x="300" y="52" text-anchor="middle" direction="rtl" fill="#ff6b6b" font-size="14.5" font-weight="700">بخش قدامی (جلو)</text>
+        <text x="300" y="72" text-anchor="middle" direction="rtl" fill="#98a4b8" font-size="12">پرس‌ها پر می‌کنند</text>
+        <path d="M300,82 L306,114" stroke="#ff6b6b" stroke-width="1.4" opacity="0.5"/>
+
+        <text x="498" y="98" text-anchor="middle" direction="rtl" fill="#ffb020" font-size="14.5" font-weight="700">بخش میانی (جانبی)</text>
+        <text x="498" y="117" text-anchor="middle" direction="rtl" fill="#98a4b8" font-size="12">مسئول عرض شانه</text>
+        <path d="M462,128 L410,142" stroke="#ffb020" stroke-width="1.4" opacity="0.5"/>
+
+        <text x="300" y="268" text-anchor="middle" direction="rtl" fill="#3ad0b8" font-size="14.5" font-weight="700">بخش خلفی (پشت)</text>
+        <path d="M300,252 L304,224" stroke="#3ad0b8" stroke-width="1.4" opacity="0.5"/>
+
+        <line x1="44" y1="292" x2="580" y2="292" stroke="#2a3242" stroke-width="1"/>
+
+        <text x="300" y="318" text-anchor="middle" direction="rtl" fill="#c3cddd" font-size="13"><tspan fill="#ff6b6b">●</tspan> قدامی: در پرس سینه و سرشانه به‌شدت بار می‌گیرد؛ ست مستقیم کم لازم دارد</text>
+        <text x="300" y="348" text-anchor="middle" direction="rtl" fill="#c3cddd" font-size="13"><tspan fill="#ffb020">●</tspan> میانی: فقط با ابداکشن (نشر از پهلو) مستقیم تحریک می‌شود؛ مسئول عرض شانه</text>
+        <text x="300" y="378" text-anchor="middle" direction="rtl" fill="#c3cddd" font-size="13"><tspan fill="#3ad0b8">●</tspan> خلفی: با نشر خم، فیس‌پول و روئینگ؛ مسئول تعادل، پاسچر و ضخامت</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>بخش</th><th>وظیفه اصلی</th><th>ست مستقیم هفتگی</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>میانی (جانبی)</b></td>
+              <td>ابداکشن — عرض شانه و V شکل شدن بالاتنه</td>
+              <td class="mono"><b>۱۰–۱۴</b></td>
+            </tr>
+            <tr>
+              <td><b>خلفی (پشتی)</b></td>
+              <td>اکستنشن + چرخش خارجی — تعادل، پاسچر، ضخامت</td>
+              <td class="mono"><b>۸–۱۲</b></td>
+            </tr>
+            <tr>
+              <td><b>قدامی (جلویی)</b></td>
+              <td>فلکشن — در پرس‌ها (سینه/سرشانه) غیرمستقیم بار می‌گیرد</td>
+              <td class="mono"><b>۰–۴</b> مستقیم</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout amber" style="margin-top:14px">
+        <h3>نکته مهم درباره تناوب</h3>
+        <p>پژوهش‌ها به‌طور کلی نشان می‌دهند تقسیم حجم یکسان روی <b>۲ جلسه</b> نتایجی کمی بهتر از یک جلسه می‌دهد. به همین دلیل در این برنامه، روز اختصاصی سرشانه داری <b>به‌علاوه یک «دوز دوم» سبک</b> که داخل روز پرس می‌چینی (بخش ۵).</p>
+        <p>اگر فقط همان یک روز را انجام دهی هم رشد می‌گیری — ولی با دوز دوم، رشد موجّه و سریع‌تر است و خستگی هر جلسه کمتر.</p>
+      </div>
+  </div>
+</section>
+
+<!-- ================= 3. WARM-UP ================= -->
+<section id="warm">
+  <div class="sec-h"><span class="sec-n">۳</span><h2>گرم‌کردن اختصاصی شانه — ۱۰ دقیقه، غیرقابل مذاکره</h2></div>
+  <p class="lead">با سابقه تق‌تق و درد خفیف، این بخش بیشترین اثر را روی «بدون درد ماندن» و کیفیت جلسه دارد. ترتیب را رعایت کن.</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>حرکت</th><th>ست × تکرار</th><th>هدف</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono">۱</td><td><b>دوچرخه یا تردمیل سبک</b><span class="en">Cardio</span></td><td class="mono">۳–۵ دقیقه</td><td>افزایش دمای عمومی بدن</td></tr>
+        <tr><td class="mono">۲</td><td><b>کشش کش باند از جلو</b><span class="en">Band Pull-apart</span></td><td class="mono">۲ × ۲۰</td><td>فعال‌سازی پشت شانه و بین‌کتفی</td></tr>
+        <tr><td class="mono">۳</td><td><b>چرخش خارجی با کش</b><span class="en">Band External Rotation</span></td><td class="mono">۲ × ۱۵ هر دست</td><td>گرم‌کردن روتاتور کاف</td></tr>
+        <tr><td class="mono">۴</td><td><b>Y-T-W روی میز شیب‌دار</b><span class="en">Prone Y-T-W</span></td><td class="mono">۲ × ۱۰ هر حرف</td><td>پایین‌تراپز + کنترل تیغه شانه</td></tr>
+        <tr><td class="mono">۵</td><td><b>اسلاید دیوار با کشش به جلو</b><span class="en">Wall Slide / Serratus Reach</span></td><td class="mono">۲ × ۱۰</td><td>سراتوس، چرخش بالایی کتف</td></tr>
+        <tr><td class="mono">۶</td><td><b>ست‌های سبک حرکت اول</b><span class="en">Ramp-up Sets</span></td><td class="mono">۲ ست (۵۰٪ و ۷۰٪ وزنه کاری)</td><td>آماده‌سازی اختصاصی پرس</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout teal">
+    <h3>قانون گرم‌کردن مؤثر</h3>
+    <p>گرم‌کردن باید <b>خودِ حرکت را شبیه‌سازی کند</b>، نه اینکه خسته‌ات کند. اگر ست‌های گرم‌کردن را با وزنه سنگین و تا نزدیک ناتوانی بزنی، از قبل بخشی از توان جلسه را سوزانده‌ای.</p>
+  </div>
+</section>
+
+<!-- ================= 4. MAIN PROGRAM ================= -->
+<section id="barname">
+  <div class="sec-h"><span class="sec-n">۴</span><h2>جلسه اختصاصی سرشانه — Session A</h2></div>
+  <p class="lead">ترتیب حرکات تصادفی نیست: از سنگین به سبک، از چندمفصلی به تک‌مفصلی، و در انتها کار سلامت شانه. هر حرکت را به همین ترتیب انجام بده.</p>
+
+  <div class="toolbar">
+    <button type="button" data-action="print">چاپ / ذخیره PDF</button>
+    <button type="button" data-action="reset-all">پاک‌کردن کل لاگ جلسه</button>
+  </div>
+
+  <div class="ses-head">
+    <h3>جلسه A — سرشانه (کامل)</h3>
+    <span class="meta">۱۹–۲۰ ست کاری + ۲ ست سلامت · ۵۰–۶۰ دقیقه · RIR ۱–۲ (آخرین ست هر حرکت: ۰–۱)</span>
+  </div>
+
+  <!-- A1 -->
+  <article class="ex">
+    <div class="ex-top">
+      <span class="ex-id">A1</span>
+      <div class="ex-name">
+        <h3>پرس سرشانه دمبل نشسته با پشتی ۸۰–۸۵ درجه <span class="en">Seated Dumbbell Shoulder Press</span></h3>
+        <div class="ex-specs">
+          <span class="sp key">۴ ست × ۶–۱۰ تکرار</span>
+          <span class="sp">RIR ۱–۲</span>
+          <span class="sp">استراحت ۲–۳ دقیقه</span>
+          <span class="sp">بخش قدامی + میانی</span>
+        </div>
+      </div>
+    </div>
+    <p class="ex-note">
+      پشتی را روی ۸۰–۸۵ درجه بگذار (کاملاً صاف = فشار زیاد روی شانه). دمبل‌ها را با <b>گریپ خنثی یا ۴۵ درجه</b> نگه دار و آرنج را حدود <b>۳۰ درجه جلوتر از تنه</b> بیاور — این همان صفحه کتفی است که برای مفصل شانه امن‌تر است. پرس را در دامنه‌ای تمام کن که <b>بدون درد</b> است؛ اگر بالای سر اذیت می‌شود، دامنه را کوتاه کن یا به حرکت جایگزین برو.
+    </p>
+    <p class="ex-note warn">
+      <b>جایگزین شانه‌دوست:</b> پرس سرشانه دستگاه با گریپ خنثی، یا <b>پرس لندماین</b> (Landmine Press) که مسیر حرکتش برای شانه‌های حساس مهربان‌تر است.
+    </p>
+    <div class="log-wrap" data-logger="A1|4">
+      <div class="log-title"><span>لاگ این حرکت</span><span style="font-weight:500">وزنه و تکرار را وارد کن — خودکار ذخیره می‌شود</span></div>
+      <div class="lhead"><span>ست</span><span>وزنه (kg)</span><span>تکرار</span></div>
+      <div class="log-rows"></div>
+    </div>
+  </article>
+
+  <!-- A2 -->
+  <article class="ex">
+    <div class="ex-top">
+      <span class="ex-id">A2</span>
+      <div class="ex-name">
+        <h3>نشر جانبی کابل تک‌دست از پشت بدن <span class="en">Single-Arm Cable Lateral Raise</span></h3>
+        <div class="ex-specs">
+          <span class="sp key">۴ ست × ۱۲–۱۸ تکرار</span>
+          <span class="sp">RIR ۱</span>
+          <span class="sp">استراحت ۶۰–۹۰ ثانیه</span>
+          <span class="sp">بخش میانی</span>
+        </div>
+      </div>
+    </div>
+    <p class="ex-note">
+      قرقره را در <b>پایین‌ترین</b> حالت بگذار، دست مقابل کابل بایست و کابل را از <b>پشت بدن</b> عبور بده تا دست از عقب‌تر از بدن شروع کند. آرنج ۱۰–۲۰ درجه خم و <b>ثابت</b>. حرکت فقط از مفصل شانه است: شانه را بالا نیاور (حرکت شراگ نشود)، تنه را تاب نده. فاز منفی <b>۲–۳ ثانیه</b>، اوج ۱ ثانیه توقف.
+    </p>
+    <div class="log-wrap" data-logger="A2|4">
+      <div class="log-title"><span>لاگ این حرکت</span><span style="font-weight:500">وزنه هر دست</span></div>
+      <div class="lhead"><span>ست</span><span>وزنه (kg)</span><span>تکرار</span></div>
+      <div class="log-rows"></div>
+    </div>
+  </article>
+
+  <!-- A3 -->
+  <article class="ex">
+    <div class="ex-top">
+      <span class="ex-id">A3</span>
+      <div class="ex-name">
+        <h3>نشر جانبی دستگاه یا دمبل خم‌شده (Lean-away) <span class="en">Machine / Lean-away Lateral Raise</span></h3>
+        <div class="ex-specs">
+          <span class="sp key">۳ ست × ۱۲–۱۵ تکرار</span>
+          <span class="sp">RIR ۰–۱ (ست آخر)</span>
+          <span class="sp">استراحت ۶۰–۹۰ ثانیه</span>
+          <span class="sp">بخش میانی</span>
+        </div>
+      </div>
+    </div>
+    <p class="ex-note">
+      ست آخر را با <b>دراپ‌ست</b> یا <b>رست‌پاز</b> تمام کن: وزنه را ۲۵–۳۰٪ کم کن و بدون استراحت تا نزدیک ناتوانی ادامه بده. در دامنه پایین، اگر بدون درد بود، <b>چند تکرار پارشال</b> در نیمه کشیده اضافه کن — این تکنیک روی بخش میانی که در کشیدگی بار می‌گیرد، محرک قوی‌تری است.
+    </p>
+    <div class="log-wrap" data-logger="A3|3">
+      <div class="log-title"><span>لاگ این حرکت</span><span style="font-weight:500">وزنه هر دست</span></div>
+      <div class="lhead"><span>ست</span><span>وزنه (kg)</span><span>تکرار</span></div>
+      <div class="log-rows"></div>
+    </div>
+  </article>
+
+  <!-- A4 -->
+  <article class="ex">
+    <div class="ex-top">
+      <span class="ex-id">A4</span>
+      <div class="ex-name">
+        <h3>فیس‌پول با طناب روی کابل <span class="en">Cable Face Pull</span></h3>
+        <div class="ex-specs">
+          <span class="sp key">۳ ست × ۱۵–۲۰ تکرار</span>
+          <span class="sp">RIR ۱–۲</span>
+          <span class="sp">استراحت ۶۰ ثانیه</span>
+          <span class="sp">بخش خلفی + پایین‌تراپز</span>
+        </div>
+      </div>
+    </div>
+    <p class="ex-note">
+      قرقره در ارتفاع صورت. طناب را به سمت <b>پیشانی/چشم</b> بکش، آرنج <b>بالاتر از مچ</b>، و در انتهای حرکت یک <b>چرخش خارجی</b> کوچک (دست‌ها را دو طرف باز کن) اضافه کن. تیغه‌های شانه را به عقب و پایین ببر، شانه‌ها را بالا نکش. وزنه سبک و تمرکز روی کیفیت.
+    </p>
+    <div class="log-wrap" data-logger="A4|3">
+      <div class="log-title"><span>لاگ این حرکت</span><span style="font-weight:500">وزنه دستگاه</span></div>
+      <div class="lhead"><span>ست</span><span>وزنه (kg)</span><span>تکرار</span></div>
+      <div class="log-rows"></div>
+    </div>
+  </article>
+
+  <!-- A5 -->
+  <article class="ex">
+    <div class="ex-top">
+      <span class="ex-id">A5</span>
+      <div class="ex-name">
+        <h3>نشر خم (پشت شانه) با دستگاه یا کابل <span class="en">Reverse Pec Deck / Cable Rear Delt Fly</span></h3>
+        <div class="ex-specs">
+          <span class="sp key">۳ ست × ۱۲–۲۰ تکرار</span>
+          <span class="sp">RIR ۱</span>
+          <span class="sp">استراحت ۶۰–۹۰ ثانیه</span>
+          <span class="sp">بخش خلفی</span>
+        </div>
+      </div>
+    </div>
+    <p class="ex-note">
+      سینه روی پد، <b>پیشانی روی پد</b> (یا پیشانی به دستگاه نگاه کن که گردن در راستای بدن بماند). آرنج کمی خم و ثابت. حرکت را با <b>کشیدن آرنج</b> انجام بده، نه فشار کف دست. در نقطه اوج یک توقف یک‌ثانیه‌ای داشته باش؛ خیلی‌ها اینجا وزنه را می‌اندازند و کلاً حرکت را هدر می‌دهند.
+    </p>
+    <div class="log-wrap" data-logger="A5|3">
+      <div class="log-title"><span>لاگ این حرکت</span><span style="font-weight:500">وزنه دستگاه</span></div>
+      <div class="lhead"><span>ست</span><span>وزنه (kg)</span><span>تکرار</span></div>
+      <div class="log-rows"></div>
+    </div>
+  </article>
+
+  <!-- A6 -->
+  <article class="ex">
+    <div class="ex-top">
+      <span class="ex-id">A6</span>
+      <div class="ex-name">
+        <h3>نشر Y روی میز شیب‌دار یا با کابل <span class="en">Incline Y-Raise / Cable Y-Raise</span></h3>
+        <div class="ex-specs">
+          <span class="sp key">۳ ست × ۱۲–۱۵ تکرار</span>
+          <span class="sp">RIR ۱</span>
+          <span class="sp">استراحت ۶۰ ثانیه</span>
+          <span class="sp">بخش خلفی + پایین‌تراپز</span>
+        </div>
+      </div>
+    </div>
+    <p class="ex-note">
+      شانه‌دوست‌ترین حرکت این برنامه: مسیر ۴۵ درجه بالای سر با گریپ خنثی، دقیقاً همان الگویی که در تقویت کتف و روتاتور کاف استفاده می‌شود. وزنه را از ۱–۲ کیلو شروع کن؛ اینجا <b>کیفیت کامل، وزنه اصلاً مهم نیست</b>.
+    </p>
+    <div class="log-wrap" data-logger="A6|3">
+      <div class="log-title"><span>لاگ این حرکت</span><span style="font-weight:500">وزنه هر دست</span></div>
+      <div class="lhead"><span>ست</span><span>وزنه (kg)</span><span>تکرار</span></div>
+      <div class="log-rows"></div>
+    </div>
+  </article>
+
+  <!-- A7 -->
+  <article class="ex">
+    <div class="ex-top">
+      <span class="ex-id">A7</span>
+      <div class="ex-name">
+        <h3>چرخش خارجی کابل (فینیشر سلامت شانه) <span class="en">Cable External Rotation</span></h3>
+        <div class="ex-specs">
+          <span class="sp">۲ ست × ۱۵ هر دست</span>
+          <span class="sp">سبک — بدون ناتوانی</span>
+          <span class="sp">استراحت ۴۵–۶۰ ثانیه</span>
+          <span class="sp">روتاتور کاف</span>
+        </div>
+      </div>
+    </div>
+    <p class="ex-note">
+      آرنج ۹۰ درجه و <b>چسبیده به پهلو</b>، ساعد را به سمت بیرون بچرخان، ۱ ثانیه نگه دار، کنترل‌شده برگرد. این حرکت برای <b>رشد دلتوئید نیست</b> — برای این است که جلسه بعدی هم بتوانی بدون درد پرس کنی. وزنه‌ای انتخاب کن که ۱۵ تکرار راحت‌انجام‌شدنی باشد.
+    </p>
+    <div class="log-wrap" data-logger="A7|2">
+      <div class="log-title"><span>لاگ این حرکت</span><span style="font-weight:500">وزنه سبک</span></div>
+      <div class="lhead"><span>ست</span><span>وزنه (kg)</span><span>تکرار</span></div>
+      <div class="log-rows"></div>
+    </div>
+  </article>
+
+  <div class="callout amber">
+    <h3>چطور ست را دقیق بزنم؟</h3>
+    <p><b>تمپو:</b> ۱ ثانیه بالا · ۱ ثانیه توقف در اوج · ۲–۳ ثانیه پایین. <b>دامنه:</b> کامل تا جایی که بدون درد ممکن است — نیمه‌کاره هیچ‌وقت. <b>تنفس:</b> دم در فاز منفی، بازدم در فاز مثبت. <b>بین ست‌ها:</b> تایمر بگذار؛ کوتاه‌کردن خودسرانه استراحت، وزنه را پایین می‌آورد و از حجم کم می‌کند.</p>
+  </div>
+
+  <div class="progress" id="prog-bar">
+    <span class="txt" id="prog-txt">۰ از ۰ ست</span>
+    <div class="bar"><div class="fill" id="prog-fill"></div></div>
+    <button type="button" data-action="reset-all">ریست</button>
+  </div>
+</section>
+
+<!-- ================= 5. SECOND DOSE ================= -->
+<section id="doz2">
+  <div class="sec-h"><span class="sec-n">۵</span><h2>دوز دوم هفتگی — کلید رشد سریع‌تر</h2></div>
+  <p class="lead">این دو حرکت را در انتهای روز پرس (سینه/پشت) اضافه کن. هدف: تقسیم حجم روی دو جلسه و بالا بردن تناوب بخش جانبی و خلفی — با کمترین خستگی اضافه.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>حرکت</th><th>ست × تکرار</th><th>RIR</th><th>کجا بچینی؟</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>نشر جانبی کابل تک‌دست</b> یا دستگاه<span class="en">Cable / Machine Lateral Raise</span></td>
+          <td class="mono"><b>۳ × ۱۲–۲۰</b></td>
+          <td class="mono">۱</td>
+          <td>انتهای روز پرس سینه</td>
+        </tr>
+        <tr>
+          <td><b>نشر خم کابل</b><span class="en">Cable Rear Delt Fly</span></td>
+          <td class="mono"><b>۲–۳ × ۱۵–۲۰</b></td>
+          <td class="mono">۱–۲</td>
+          <td>انتهای روز پرس یا روز پشت</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kpi">
+    <div class="card"><span class="big n-amber">۵–۶</span><span class="lbl">ست در دوز دوم</span></div>
+    <div class="card"><span class="big n-teal">۴۸–۷۲</span><span class="lbl">ساعت فاصله بین دو دوز</span></div>
+    <div class="card"><span class="big n-blue">~۲۶</span><span class="lbl">ست مستقیم هفتگی دلتوئید</span></div>
+    <div class="card"><span class="big n-ok">۲×</span><span class="lbl">تناوب هفتگی هر بخش</span></div>
+  </div>
+
+  <div class="callout teal">
+    <h3>چرا ۲ بار در هفته بهتر است؟</h3>
+    <p>وقتی همان حجم هفتگی روی دو جلسه پخش شود، هر جلسه با کیفیت بالاتر و خستگی کمتر انجام می‌شود و دستگاه عصبی-عضلانی ریکاوری بهتری دارد. در متاآنالیزهای تناوب، ۲ جلسه در هفته برای رشد عضله اندکی بهتر از ۱ جلسه بوده — به‌خصوص وقتی حجم هفتگی بالا می‌رود.</p>
+  </div>
+</section>
+
+<!-- ================= 6. PROGRESSION ================= -->
+<section id="progress">
+  <div class="sec-h"><span class="sec-n">۶</span><h2>نقشه ۸ هفته‌ای پیشروی</h2></div>
+  <p class="lead">هر هفته بدون برنامه جلو نرو. این جدول مشخص می‌کند کدام هفته سنگین، کدام سبک و کدام هفته باید رکورد بزنی.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>هفته</th><th>حجم</th><th>شدت (RIR)</th><th>تمرکز جلسه</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono"><b>۱</b></td><td class="mono">~۹۰٪</td><td class="mono">۳</td><td>یادگیری تکنیک + ثبت وزنه پایه برای هر حرکت</td></tr>
+        <tr><td class="mono"><b>۲</b></td><td class="mono">۱۰۰٪</td><td class="mono">۲–۳</td><td>پیشروی دوگانه: +۱ تکرار در هر ست نسبت به هفته ۱</td></tr>
+        <tr><td class="mono"><b>۳</b></td><td class="mono">۱۰۰٪</td><td class="mono">۱–۲</td><td>سنگین‌ترین هفته بلوک اول · آخرین ست هر حرکت RIR ۰</td></tr>
+        <tr><td class="mono"><b>۴</b></td><td class="mono">۵۰–۶۰٪ <span class="pill p-blue">دیلود</span></td><td class="mono">۴</td><td>ریکاوری کامل — وزنه را نگه دار، نصف ست‌ها</td></tr>
+        <tr><td class="mono"><b>۵</b></td><td class="mono">۱۰۰٪ +</td><td class="mono">۲–۱</td><td>شروع بلوک شدت: دراپ‌ست/رست‌پاز در آخرین ست</td></tr>
+        <tr><td class="mono"><b>۶</b></td><td class="mono">۱۰۵٪</td><td class="mono">۱</td><td>اضافه‌کردن پارشال در دامنه کشیده (حرکت A3)</td></tr>
+        <tr><td class="mono"><b>۷</b></td><td class="mono">۱۰۵–۱۱۰٪</td><td class="mono">۰–۱</td><td>هفته رکورد: هدف، عبور از وزنه هفته ۳</td></tr>
+        <tr><td class="mono"><b>۸</b></td><td class="mono">۵۰٪ <span class="pill p-blue">دیلود</span></td><td class="mono">۴–۵</td><td>ریکاوری، اندازه‌گیری، عکس، شروع بلوک بعدی با وزنه‌های جدید</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout amber">
+    <h3>قانون پیشروی دوگانه (Double Progression)</h3>
+    <p><b>گام ۱:</b> در محدوده تکرار حرکت بمان و هر جلسه ۱ تکرار اضافه کن تا به <b>سقف بازه</b> برسی (مثلاً ۱۸ تکرار در نشر کابل).<br>
+    <b>گام ۲:</b> وقتی در همه ست‌ها به سقف رسیدی، وزنه را <b>۲.۵ درصد</b> (دمبل تک: ۱–۲ کیلو، کابل: یک بشقاب) زیاد کن و تکرار را از کف بازه شروع کن (۱۲).<br>
+    <b>گام ۳:</b> این چرخه را تکرار کن. این تنها معیار واقعی «پیشرفت» است — نه احساس سوزش یا درد فردا.</p>
+    <p style="margin-top:9px"><b>اگر پیشروی متوقف شد:</b> ۱) خواب و کالری را چک کن ۲) یک هفته دیلود بزن ۳) ترتیب حرکات را عوض کن تا حرکت ضعیفت اول بیاید.</p>
+  </div>
+</section>
+
+<!-- ================= 7. PAIN ================= -->
+<section id="pain">
+  <div class="sec-h"><span class="sec-n">۷</span><h2>شانه‌ای که تق‌تق می‌دهد — پروتکل مراقبت</h2></div>
+  <p class="lead">تق‌تق بدون درد معمولاً بی‌خطر است (حرکت تاندون روی برجستگی استخوانی یا حباب گاز در مفصل) و در بیشتر افراد هم وجود دارد. مسئله وقتی شروع می‌شود که تق‌تق <b>همراه درد، ضعف یا محدود شدن دامنه</b> باشد.</p>
+
+  <div class="grid g2">
+    <div class="card" style="border-color:#1a4a2e">
+      <h3><span class="pill p-ok">بکن</span> رفتار تمرینی درست</h3>
+      <ul class="clean do">
+        <li><b>گرم‌کردن کامل</b> قبل از هر جلسه (بخش ۳) — بدون استثنا</li>
+        <li>نسبت کشش به پرس در برنامه هفتگی <b>حداقل ۱:۱</b>، بهتر ۲:۱ — یعنی به‌ازای هر ست پرس سینه/سرشانه، یک تا دو ست کششی (فیس‌پول، روئینگ، نشر خم)</li>
+        <li>تقویت روتاتور کاف <b>۲–۳ بار در هفته</b>، سبک و پرتکرار (حرکت A7)</li>
+        <li>تمرین در <b>دامنه بدون درد</b> و سخت‌کردن عضله در همان دامنه؛ ماهیچه در هر دامنه‌ای که کار کند، رشد می‌کند</li>
+        <li>حرکات پرس با <b>گریپ خنثی</b> یا دمبل (مسیر آزادتر از هالتر)</li>
+        <li>اگر حرکت سنگین بالای سر درد می‌دهد، موقتاً <b>پرس لندماین</b> یا پرس دستگاه را جایگزین کن</li>
+        <li>تحرک قفسه سینه: فوم‌رول (۳۰–۶۰ ثانیه) + کشش درگاه (<span class="en">Doorway Pec Stretch</span> ۲×۳۰ ثانیه)</li>
+        <li>خواب: به پشت یا پهلو با بالش کوتاه؛ <b>دست زیر سر/زیر بالش نگذار</b></li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-color:#4d2229">
+      <h3><span class="pill p-rose">نکن</span> این‌ها شانه را می‌سوزانند</h3>
+      <ul class="clean dont">
+        <li><b>پرس از پشت گردن</b> — در هر شرایطی</li>
+        <li>زیربغل سیم‌کش با <b>گریپ بسته</b> و کشیدن آرنج بالاتر از سطح شانه در حالت چرخش داخلی</li>
+        <li>نشر جانبی و بالاکشیدن تا <b>بالاتر از سطح شانه همراه با درد</b></li>
+        <li>شنا/دیپ با <b>عمق بیش از حد</b> و نشستن شانه به جلو</li>
+        <li>اصرار روی پرس سنگین در روزی که درد داری («نه، فقط یه ست دیگه» = شروع یک ماه بی‌تمرینی)</li>
+        <li>بازکردن شدید و اجباری شانه برای صدا دادن — صدا را «درست» نکن، درد را مدیریت کن</li>
+        <li>اضافه‌کردن تمرین روزانه سرشانه؛ این عضله کوچک است و به <b>۴۸ ساعت فاصله</b> نیاز دارد</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout rose">
+    <h3>کِی باید به فیزیوتراپیست یا پزشک مراجعه کنی؟</h3>
+    <p>اگر یکی از این‌ها را داری، برنامه را ادامه نده و ارزیابی تخصصی بگیر: <b>درد شبانه</b> یا دردی که خوابت را می‌برد · <b>ضعف ناگهانی</b> در بلند کردن دست · <b>کاهش واضح دامنه</b> (مثلاً نمی‌توانی دست را بلند کنی) · درد بعد از یک <b>تروما</b> (افتادن، کشیدن ناگهانی، دررفتگی) · صدای ترق همراه با درد تیز در لحظه.</p>
+  </div>
+</section>
+
+<!-- ================= 8. NUTRITION ================= -->
+<section id="food">
+  <div class="sec-h"><span class="sec-n">۸</span><h2>تغذیه و ریکاوری — عضله بیرون از باشگاه ساخته می‌شود</h2></div>
+  <p class="lead">تمرین فقط «دستور ساخت» است. مواد خام و زمان ساخت، از تغذیه و خواب می‌آید.</p>
+
+  <div class="grid g3">
+    <div class="card">
+      <span class="big n-amber">۱۰–۱۵٪+</span>
+      <span class="lbl" style="font-weight:700">مازاد کالری</span>
+      <p style="margin-top:8px">حدود ۲۵۰–۴۰۰ کیلوکالری بالای نیاز روزانه. بیشتر از این = چربی اضافه بدون عضله بیشتر.</p>
+    </div>
+    <div class="card">
+      <span class="big n-teal">۱.۶–۲.۲ g/kg</span>
+      <span class="lbl" style="font-weight:700">پروتئین</span>
+      <p style="margin-top:8px">در ۳–۵ وعده تقسیم شود. منبع: مرغ، ماهی، تخم‌مرغ، لبنیات، گوشت، حبوبات.</p>
+    </div>
+    <div class="card">
+      <span class="big n-blue">۳–۵ g</span>
+      <span class="lbl" style="font-weight:700">کراتین مونوهیدرات</span>
+      <p style="margin-top:8px">هر روز، ساعتش مهم نیست. یکی از مستندترین مکمل‌ها برای هایپرتروفی و قدرت.</p>
+    </div>
+    <div class="card">
+      <span class="big n-ok">۷–۹ ساعت</span>
+      <span class="lbl" style="font-weight:700">خواب</span>
+      <p style="margin-top:8px">کمبود خواب مستقیماً سنتز پروتئین عضله را کم می‌کند. اگر بین کراتین و خواب یکی را انتخاب می‌کنی، خواب را انتخاب کن.</p>
+    </div>
+    <div class="card">
+      <span class="big n-amber">۳۰–۴۰ ml/kg</span>
+      <span class="lbl" style="font-weight:700">آب</span>
+      <p style="margin-top:8px">کم‌آبی عملکرد را در ست‌های آخر جلسه پایین می‌آورد — همان‌جایی که رشد ساخته می‌شود.</p>
+    </div>
+    <div class="card">
+      <span class="big n-rose">۴۸ ساعت</span>
+      <span class="lbl" style="font-weight:700">فاصله دو دوز شانه</span>
+      <p style="margin-top:8px">دلتوئید عضله کوچکی است؛ روزانه تمرین دادنش خرابی می‌آورد، نه رشد.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>یک نکته صادقانه درباره انتظارها</h3>
+    <p>سرشانه ظاهر «فریب‌دهنده» دارد: چون عضله کوچکی است و چربی دور آن کم است، تغییراتش به اندازه بازو یا سینه چشمگیر نیست. با تمرین منظم و پیشروی درست، <b>۱–۲ سانتی‌متر</b> اضافه‌شدن دور شانه در یک بلوک ۸ هفته‌ای کاملاً واقع‌بینانه است، اما <b>تغییر ظاهری مشهود</b> عرض شانه معمولاً ۳ تا ۶ ماه زمان می‌برد. کسی که ۶ ماه با برنامه پیش برود، از کسی که ۶ برنامه مختلف را در ۶ ماه عوض کرده، وضع بسیار بهتری دارد.</p>
+  </div>
+</section>
+
+<!-- ================= 9. TRACKING ================= -->
+<section id="track">
+  <div class="sec-h"><span class="sec-n">۹</span><h2>سنجش پیشرفت — با عدد، نه با حس</h2></div>
+  <p class="lead">اگر پیشرفت را ثبت نکنی، نمی‌فهمی برنامه کار می‌کند یا نه — و همین‌جاست که بیشتر افراد برنامه را بی‌دلیل عوض می‌کنند.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>شاخص</th><th>روش سنجش</th><th>هر چند وقت</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>عرض شانه</b></td><td>فاصله بین دو استخوان آکرومیون (نوک شانه) با متر پارچه‌ای، بازوها شل کنار بدن</td><td>هر ۴ هفته</td></tr>
+        <tr><td><b>دور سینه</b></td><td>در ارتفاع نوک سینه، در پایان بازدم، نوار افقی و نه سفت</td><td>هر ۴ هفته</td></tr>
+        <tr><td><b>دور بازو</b></td><td>در نقطه اوج بازوی سفت‌شده (پمپ‌شده)، همیشه همان نقطه</td><td>هر ۴ هفته</td></tr>
+        <tr><td><b>عکس پیشرفت</b></td><td>نور یکسان، فاصله یکسان، سه حالت: روبه‌رو، پهلو، پشت با دست‌های باز؛ صبح ناشتا</td><td>هر ۴ هفته</td></tr>
+        <tr><td><b>لاگ تمرین</b></td><td>وزنه × تکرار × RIR هر ست (همان جدول‌های بخش ۴)</td><td>هر جلسه</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="callout teal" style="margin:0">
+      <h3>معیار درست پیشرفت</h3>
+      <p>تکرار بیشتر یا وزنه بیشتر با <b>همان کیفیت تکنیک</b>. اگر هفته ۷ سنگین‌تر از هفته ۳ پرس می‌کنی، برنامه دارد کار می‌کند — حتی اگر آینه هنوز چیز زیادی نشان نداده باشد.</p>
+    </div>
+    <div class="callout rose" style="margin:0">
+      <h3>معیارهای غلط</h3>
+      <p>کوفتگی عضلانی (DOMS) ملاک رشد نیست · سوزش در حین ست ملاک رشد نیست · خستگی زیاد ملاک رشد نیست. <b>اضافه‌بار پیشرونده</b> و <b>عدد / متر</b> ملاک است.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="disclaimer">
+    <b>هشدار مهم:</b> این برنامه یک راهنمای آموزشی عمومی برای فرد با سابقه تمرینی متوسط، دسترسی به باشگاه کامل و بدون آسیب حاد شانه است. در صورت وجود درد، سابقه دررفتگی، پارگی یا جراحی شانه، قبل از اجرا با پزشک ورزشی یا فیزیوتراپیست مشورت کن. هیچ برنامه‌ای جایگزین ارزیابی بالینی فردی نیست.
+  </div>
+
+  <h3>مبنای علمی (نمونه منابع کلیدی)</h3>
+  <ol>
+    <li>Schoenfeld BJ, Ogborn D, Krieger JW. Dose-response relationship between weekly resistance training volume and increases in muscle mass. <i>J Sports Sci.</i> 2017;35(11):1073–1082.</li>
+    <li>Refalo MC, Helms ER, Trexler ET, Hamilton DL, Fyfe JJ. Influence of Resistance Training Proximity-to-Failure on Skeletal Muscle Hypertrophy: A Systematic Review with Meta-analysis. <i>Sports Med.</i> 2023;53(3):649–665.</li>
+    <li>Bernárdez-Vázquez R, et al. Resistance Training Variables for Optimization of Muscle Hypertrophy: An Umbrella Review. <i>Front Sports Act Living.</i> 2022;4:949021.</li>
+    <li>Schoenfeld BJ, Grgic J, Krieger J. How many times per week should a muscle be trained to maximize muscle hypertrophy? <i>J Sports Sci.</i> 2019;37(11):1286–1295.</li>
+  </ol>
+
+  <p style="color:var(--dim2)">ساخته‌شده به‌صورت اختصاصی · نسخه ۱.۰ · فایل قابل چاپ در حالت Print</p>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var STORE = "shoulder_program_v1_";
+  function toFa(n){
+    var d = ["\u06F0","\u06F1","\u06F2","\u06F3","\u06F4","\u06F5","\u06F6","\u06F7","\u06F8","\u06F9"];
+    return String(n).replace(/[0-9]/g, function(x){ return d[+x]; });
+  }
+
+  // build logger rows
+  document.querySelectorAll("[data-logger]").forEach(function(box){
+    var parts = box.getAttribute("data-logger").split("|");
+    var id = parts[0], sets = parseInt(parts[1],10) || 3;
+    var host = box.querySelector(".log-rows");
+    if(!host) return;
+    for(var i=0;i<sets;i++){
+      var row = document.createElement("div");
+      row.className = "lrow";
+      row.innerHTML =
+        '<label><input type="checkbox" data-k="'+id+'_'+i+'_done"><span>ست '+toFa(i+1)+'</span></label>' +
+        '<input type="text" inputmode="decimal" placeholder="—" data-k="'+id+'_'+i+'_kg">' +
+        '<input type="text" inputmode="numeric" placeholder="—" data-k="'+id+'_'+i+'_rp">';
+      host.appendChild(row);
+    }
+  });
+
+  // restore
+  var all = document.querySelectorAll("[data-k]");
+  all.forEach(function(el){
+    var k = STORE + el.getAttribute("data-k");
+    var v = localStorage.getItem(k);
+    if(v === null) return;
+    if(el.type === "checkbox") el.checked = (v === "1");
+    else el.value = v;
+  });
+
+  // save
+  function onEdit(e){
+    var el = e.target;
+    if(!el.getAttribute || !el.getAttribute("data-k")) return;
+    var k = STORE + el.getAttribute("data-k");
+    try{
+      if(el.type === "checkbox") localStorage.setItem(k, el.checked ? "1" : "0");
+      else localStorage.setItem(k, el.value);
+    }catch(err){
+      var t = document.getElementById("prog-txt");
+      if(t) t.textContent = "حافظه مرورگر غیرفعال است";
+    }
+    updateProgress();
+  }
+  document.addEventListener("input", onEdit, true);
+  document.addEventListener("change", onEdit, true);
+
+  // progress
+  function updateProgress(){
+    var boxes = document.querySelectorAll('input[type=checkbox][data-k$="_done"]');
+    var total = boxes.length, done = 0;
+    boxes.forEach(function(b){ if(b.checked) done++; });
+    var fill = document.getElementById("prog-fill");
+    var txt = document.getElementById("prog-txt");
+    if(!fill || !txt) return;
+    fill.style.width = (total ? (done/total*100) : 0) + "%";
+    txt.textContent = toFa(done) + " از " + toFa(total) + " ست";
+  }
+  updateProgress();
+
+  // buttons
+  document.addEventListener("click", function(e){
+    var btn = e.target.closest ? e.target.closest("[data-action]") : null;
+    if(!btn) return;
+    var act = btn.getAttribute("data-action");
+    if(act === "print"){ window.print(); }
+    if(act === "reset-all"){
+      if(!window.confirm("همه‌ی لاگ‌های ذخیره‌شده پاک شود؟")) return;
+      var keys = [];
+      for(var i=0;i<localStorage.length;i++){ var k = localStorage.key(i); if(k && k.indexOf(STORE) === 0) keys.push(k); }
+      keys.forEach(function(k){ localStorage.removeItem(k); });
+      document.querySelectorAll("[data-k]").forEach(function(el){
+        if(el.type === "checkbox") el.checked = false; else el.value = "";
+      });
+      updateProgress();
+    }
+  });
+})();
+</script>
+</body>
+</html>
