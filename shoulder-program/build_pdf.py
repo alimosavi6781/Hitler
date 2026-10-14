@@ -18,6 +18,9 @@ from fpdf import FPDF
 from arabic_reshaper import ArabicReshaper
 from bidi.algorithm import get_display
 
+from figures import FIGURES
+from content_a567 import EXERCISES
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 FDIR = os.path.join(HERE, "fonts", "ttf")
 OUT = os.path.join(HERE, "shoulder-program.pdf")
@@ -293,6 +296,95 @@ class Program(FPDF):
             x -= (w + gap)
         self.set_y(y + h + 3.4)
 
+
+    # --------------------------------------------------- figures & lists
+    def _lines_h(self, text, w, size, lh):
+        self.set_font("vz", "", size)
+        return self.multi_cell(w, lh, R(text), align="R", dry_run=True, output="HEIGHT")
+
+    def numbered(self, items, size=9.2, lh=4.8, indent=7.2, gap=1.5, accent=AMBER):
+        for i, it in enumerate(items, 1):
+            tw = self.cw - indent
+            h = self._lines_h(it, tw, size, lh)
+            self.need(h + gap)
+            y0 = self.get_y()
+            self.set_fill_color(*accent)
+            self.rect(self.l_margin + self.cw - 5.6, y0 + 0.9, 4.6, 4.6, style="F",
+                      round_corners=True, corner_radius=1.2)
+            self.set_font("vzb", "", 8.2)
+            self.set_text_color(*WHITE)
+            self.set_xy(self.l_margin + self.cw - 5.6, y0 + 1.7)
+            self.cell(4.6, 3.4, R(str(i)), align="C")
+            self.set_font("vz", "", size)
+            self.set_text_color(*DIM)
+            self.set_xy(self.l_margin, y0)
+            self.multi_cell(tw, lh, R(it), align="R", new_x="LMARGIN", new_y="NEXT")
+            self.ln(gap)
+
+    def two_col(self, cols, size=8.8, lh=4.6, gap=4.0, pad=3.2):
+        """cols: [(title, items, accent, marker_color), ...] در حالت راست‌به‌چپ"""
+        w = (self.cw - gap * (len(cols) - 1)) / len(cols)
+        tw = w - 2 * pad
+        heights = []
+        for title, items, accent, marker in cols:
+            hh = 0.0
+            if title:
+                self.set_font("vzb", "", size + 0.6)
+                hh += self.multi_cell(tw, 5.2, R(title), align="R", dry_run=True,
+                                      output="HEIGHT") + 1.6
+            for it in items:
+                hh += self._lines_h(it, tw - 4.6, size, lh) + 1.2
+            heights.append(hh + 2 * pad - 1.2)
+        h = max(heights)
+        self.need(h + 3.6)
+        y = self.get_y()
+        x = self.l_margin + self.cw - w
+        for (title, items, accent, marker), hh in zip(cols, heights):
+            self.set_fill_color(250, 251, 254)
+            self.set_draw_color(*LINE)
+            self.set_line_width(0.2)
+            self.rect(x, y, w, h, style="DF", round_corners=True, corner_radius=2)
+            self.set_fill_color(*accent)
+            self.rect(x + w - 1.5, y + 1.6, 1.3, h - 3.2, style="F", round_corners=True,
+                      corner_radius=0.5)
+            yy = y + pad
+            if title:
+                self.set_font("vzb", "", size + 0.6)
+                self.set_text_color(*INK)
+                self.set_xy(x + pad, yy)
+                self.multi_cell(tw, 5.2, R(title), align="R", new_x="LMARGIN", new_y="NEXT")
+                yy = self.get_y() + 1.6
+            for it in items:
+                hhh = self._lines_h(it, tw - 4.6, size, lh)
+                self.set_fill_color(*marker)
+                self.rect(x + w - pad - 3.2, yy + 1.5, 2.0, 2.0, style="F",
+                          round_corners=True, corner_radius=0.6)
+                self.set_font("vz", "", size)
+                self.set_text_color(*DIM)
+                self.set_xy(x + pad, yy)
+                self.multi_cell(tw - 4.6, lh, R(it), align="R", new_x="LMARGIN", new_y="NEXT")
+                yy = self.get_y() + 1.2
+            x -= (w + gap)
+        self.set_y(y + h + 3.6)
+
+    def fig_row(self, pairs, gap=4.0, cap_size=8.0):
+        """pairs: [(Fig, caption), ...] در یک ردیف افقی"""
+        n = len(pairs)
+        w = (self.cw - gap * (n - 1)) / n
+        heights = [w * f.h / f.w for f, _ in pairs]
+        cap_h = 4.6 if any(c for _, c in pairs) else 0.0
+        self.need(max(heights) + cap_h + 8)
+        y = self.get_y()
+        x = self.l_margin + self.cw - w
+        for (f, cap), fh in zip(pairs, heights):
+            f.draw_pdf(self, x, y, w / f.w, R)
+            if cap:
+                self.set_font("vz", "", cap_size)
+                self.set_text_color(*DIM2)
+                self.set_xy(x, y + fh + 1.2)
+                self.cell(w, 4, R(cap), align="C")
+            x -= (w + gap)
+        self.set_y(y + max(heights) + cap_h + 3.6)
 
 def polar(cx, cy, r, deg):
     import math
@@ -664,6 +756,70 @@ def build():
     pdf.p("هشدار: این سند یک راهنمای آموزشی برای فرد با سابقه تمرینی متوسط، دسترسی به باشگاه کامل و بدون آسیب حاد "
           "شانه است. در صورت وجود درد، سابقه دررفتگی، پارگی یا جراحی شانه، پیش از اجرا با پزشک ورزشی یا "
           "فیزیوتراپیست مشورت کن.", size=8.2, color=DIM2, lh=4.6, gap=0)
+
+    # ------------------------------------------- appendix: illustrated A5-A7
+    pdf.add_page()
+    pdf.title_band("پیوست — راهنمای تصویری A5، A6 و A7",
+                   "شکل‌ها شماتیک‌اند و برای انتقال «وضعیت بدن و مسیر حرکت» طراحی شده‌اند · "
+                   "تمپو: ۱ ثانیه بالا، ۱ ثانیه توقف اوج، ۲ تا ۳ ثانیه پایین")
+    pdf.ln(1.5)
+
+    ACC = {"AMBER": (AMBER, AMBER_BG), "TEAL": (TEAL, TEAL_BG)}
+    for k, ex in enumerate(EXERCISES):
+        if k:
+            pdf.add_page()
+        accent, accent_bg = ACC[ex["accent"]]
+        # سرتیتر حرکت
+        pdf.need(20)
+        y = pdf.get_y()
+        pdf.set_fill_color(*accent_bg)
+        pdf.rect(pdf.l_margin, y, pdf.cw, 13.6, style="F", round_corners=True,
+                 corner_radius=2)
+        pdf.set_fill_color(*accent)
+        pdf.rect(pdf.l_margin + pdf.cw - 1.6, y + 1.6, 1.5, 10.4, style="F",
+                 round_corners=True, corner_radius=0.6)
+        pdf.set_font("vzb", "", 12.4)
+        pdf.set_text_color(*INK)
+        pdf.set_xy(pdf.l_margin + 3.4, y + 1.4)
+        pdf.cell(pdf.cw - 22, 6.4, R("%s — %s" % (ex["code"], ex["title"])), align="R")
+        pdf.set_font("vz", "", 8.4)
+        pdf.set_text_color(*DIM)
+        pdf.set_xy(pdf.l_margin + 3.4, y + 7.6)
+        pdf.cell(pdf.cw - 22, 5.0, R(ex["role"]), align="R")
+        pdf.set_font("vzm", "", 9.4)
+        pdf.set_text_color(*accent)
+        pdf.set_xy(pdf.l_margin + pdf.cw - 16, y + 4.2)
+        pdf.cell(12, 5.0, ex["code"], align="C")
+        pdf.set_y(y + 16.6)
+        pdf.chip_row([(s_, DIM, (240, 243, 248)) for s_ in ex["specs"]])
+        # شکل‌ها
+        pairs = [(FIGURES[key](), cap) for key, cap in ex["figures"]]
+        pdf.fig_row(pairs)
+        # نسخه‌ها
+        pdf.two_col([
+            ("کدام نسخه را انتخاب کنم؟", ex["variants"], accent, accent),
+            ("خودآزمایی بعد از ست", [ex["check"]], AMBER, OK),
+        ])
+        # مراحل اجرا
+        pdf.set_font("vzb", "", 10.4)
+        pdf.set_text_color(*INK)
+        pdf.set_x(pdf.l_margin)
+        pdf.cell(pdf.cw, 6, R("مراحل اجرا — به همین ترتیب"), align="R")
+        pdf.ln(7.2)
+        pdf.numbered(ex["steps"], accent=accent)
+        # نکات و اشتباهات
+        pdf.two_col([
+            ("نکات کلیدی", ex["cues"], accent, OK),
+            ("اشتباهات رایج", ex["mistakes"], ROSE, ROSE),
+        ])
+    pdf.add_page()
+    pdf.box(["تمپو ۱ ثانیه بالا، ۱ ثانیه توقف اوج، ۲ تا ۳ ثانیه پایین · دامنه کامل تا مرز بدون درد · "
+             "آرنج در تمام ست با زاویه ثابت · وزنه‌ای که تکنیک را در تکرار آخر خراب نکند."],
+            bg=TEAL_BG, accent=TEAL, title="قوانین مشترک این سه حرکت")
+    pdf.box(["اگر درد، سابقه دررفتگی، پارگی یا جراحی شانه داری، پیش از اجرا با پزشک ورزشی یا فیزیوتراپیست "
+             "مشورت کن. شکل‌ها شماتیک‌اند و جایگزین آموزش حضوری نیستند."],
+            bg=ROSE_BG, accent=ROSE, title="هشدار")
+    pdf.set_y(pdf.get_y() + 1)
 
     # ---------------------------------------------------- page 6 : log card
     pdf.add_page()
