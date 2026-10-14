@@ -255,7 +255,7 @@ def fig_a5_sweep():
     # پیکر از بالا
     f.rect(284, 246, 72, 126, fill=C_INK, r=34)                         # تنه
     f.circle(320, 396, 25, fill=C_INK)                                  # سر
-    f.text(320, 440, "سر", size=12.5)
+    f.text(284, 402, "سر", size=12.5, anchor="end")
     # شروع (خط‌چین)
     f.poly([(290, 262), (282, 214), (276, 166)], stroke=C_DIM, sw=17, dash=9)
     f.poly([(350, 262), (358, 214), (364, 166)], stroke=C_DIM, sw=17, dash=9)
@@ -393,7 +393,7 @@ def fig_a7_rotation():
     f = Fig(640, 440)
     # پیکر از بالا (سر پایین، رو به بالا = جلوی بدن)
     f.circle(320, 396, 25, fill=C_INK)                                   # سر
-    f.text(320, 440, "سر — پایین تصویر", size=12.5)
+    f.text(284, 402, "سر", size=12.5, anchor="end")
     f.rect(284, 250, 72, 122, fill=C_INK, r=34)                          # تنه
     # بازوی کارکننده: بازو چسبیده به پهلو
     f.line(292, 268, 276, 318, stroke=C_INK, sw=20)
