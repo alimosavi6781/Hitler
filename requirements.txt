@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+apscheduler
+pillow
+arabic-reshaper
+python-bidi
+requests
+python-multipart
