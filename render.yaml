@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: persian-crypto-alert-bot
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: CHECK_INTERVAL
+        value: "60"
+      - key: DEFAULT_SYMBOLS
+        value: BTCUSDT,ETHUSDT
+      - key: DATABASE_PATH
+        value: /tmp/bot.db
+      - key: LOG_LEVEL
+        value: INFO
